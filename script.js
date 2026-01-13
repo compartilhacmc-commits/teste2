@@ -2,6 +2,7 @@
 // CONFIGURAÇÃO DAS PLANILHAS (8 DISTRITOS)
 // ===================================
 const SHEETS = [
+  // DISTRITO ELDORADO
   {
     name: 'PENDÊNCIAS ELDORADO',
     url: 'https://docs.google.com/spreadsheets/d/1r6NLcVkVLD5vp4UxPEa7TcreBpOd0qeNt-QREOG4Xr4/gviz/tq?tqx=out:csv&gid=278071504',
@@ -15,6 +16,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO INDUSTRIAL
   {
     name: 'PENDÊNCIAS INDUSTRIAL',
     url: 'https://docs.google.com/spreadsheets/d/14eUVIsWPubMve4DhVjVwlh7gin-qVyN3PspkwQ1PZMg/gviz/tq?tqx=out:csv&gid=278071504',
@@ -28,6 +30,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO NACIONAL
   {
     name: 'PENDÊNCIAS NACIONAL',
     url: 'https://docs.google.com/spreadsheets/d/1lMGO9Hh_qL9OKI270fPL7lxadr-BZN9x_ZtmQeX6OcA/gviz/tq?tqx=out:csv&gid=278071504',
@@ -41,6 +44,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO PETROLÂNDIA
   {
     name: 'PENDÊNCIAS PETROLÂNDIA',
     url: 'https://docs.google.com/spreadsheets/d/1Z9Uf5MGm5tClVDR95SUpwOjivAdqEVUfDj7mIuRLf4s/gviz/tq?tqx=out:csv&gid=278071504',
@@ -54,6 +58,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO RESSACA
   {
     name: 'PENDÊNCIAS RESSACA',
     url: 'https://docs.google.com/spreadsheets/d/1aIsq1a8Lb90M19TQdiJG_WyX7wzzC2WRohelJY6A-u8/gviz/tq?tqx=out:csv&gid=278071504',
@@ -67,6 +72,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO RIACHO
   {
     name: 'PENDÊNCIAS RIACHO',
     url: 'https://docs.google.com/spreadsheets/d/1367XyjVDYyDWo3vUz6Hd_zEqLAJkH_c1MwlvtZnpmUc/gviz/tq?tqx=out:csv&gid=278071504',
@@ -80,6 +86,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO SEDE
   {
     name: 'PENDÊNCIAS SEDE',
     url: 'https://docs.google.com/spreadsheets/d/1RPf2bfQVoM1FqnyA-0P8uPTJ_PG4I2Ce6lXnk54ixfc/gviz/tq?tqx=out:csv&gid=278071504',
@@ -93,6 +100,7 @@ const SHEETS = [
     tipo: 'RESOLVIDO'
   },
 
+  // DISTRITO VARGEM DAS FLORES
   {
     name: 'PENDÊNCIAS VARGEM DAS FLORES',
     url: 'https://docs.google.com/spreadsheets/d/1IHknmxe3xAnfy5Bju_23B5ivIL-qMaaE6q_HuPaLBpk/gviz/tq?tqx=out:csv&gid=278071504',
@@ -112,6 +120,7 @@ const SHEETS = [
 // ===================================
 let allData = [];
 let filteredData = [];
+
 let chartDistritos = null;
 let chartDistritosPendentes = null;
 let chartStatus = null;
@@ -141,7 +150,7 @@ function getColumnValue(item, possibleNames, defaultValue = '-') {
 }
 
 // ===================================
-// MULTISELECT (CHECKBOX) HELPERS (FILTROS DO PAINEL)
+// MULTISELECT (CHECKBOX) HELPERS
 // ===================================
 function toggleMultiSelect(id) {
   document.getElementById(id).classList.toggle('open');
@@ -153,7 +162,6 @@ document.addEventListener('click', (e) => {
     if (!ms.contains(e.target)) ms.classList.remove('open');
   });
 
-  // fecha dropdown dos filtros de coluna da tabela
   document.querySelectorAll('.th-filter').forEach(box => {
     if (!box.contains(e.target)) box.classList.remove('open');
   });
@@ -234,8 +242,11 @@ async function loadData() {
   try {
     const promises = SHEETS.map(sheet =>
       fetch(sheet.url)
-        .then(r => r.ok ? r.text() : null)
-        .then(csvText => csvText ? ({ name: sheet.name, csv: csvText, distrito: sheet.distrito, tipo: sheet.tipo }) : null)
+        .then(response => response.ok ? response.text() : null)
+        .then(csvText => {
+          if (!csvText) return null;
+          return { name: sheet.name, csv: csvText, distrito: sheet.distrito, tipo: sheet.tipo };
+        })
         .catch(() => null)
     );
 
@@ -269,7 +280,6 @@ async function loadData() {
     if (allData.length === 0) throw new Error('Nenhum dado foi carregado das planilhas');
 
     filteredData = [...allData];
-
     populateFilters();
     updateDashboard();
 
@@ -358,9 +368,6 @@ function populateFilters() {
   populateDistritoFilter();
 }
 
-// ===================================
-// ✅ POPULAR FILTRO DE MÊS
-// ===================================
 function populateMonthFilter() {
   const mesesSet = new Set();
 
@@ -389,18 +396,12 @@ function populateMonthFilter() {
   setMultiSelectText('msMesText', [], 'Todos os Meses');
 }
 
-// ===================================
-// ✅ POPULAR FILTRO DE DISTRITO
-// ===================================
 function populateDistritoFilter() {
   const distritos = [...new Set(allData.map(item => item['_distrito']))].filter(Boolean).sort();
   renderMultiSelect('msDistritoPanel', distritos, applyFilters);
   setMultiSelectText('msDistritoText', [], 'Todos os Distritos');
 }
 
-// ===================================
-// ✅ APLICAR FILTROS
-// ===================================
 function applyFilters() {
   const statusSel = getSelectedFromPanel('msStatusPanel');
   const unidadeSel = getSelectedFromPanel('msUnidadePanel');
@@ -430,14 +431,11 @@ function applyFilters() {
         'Data Início Pendência',
         'Data Inicio Pendencia'
       ]));
-
       if (dataInicio) {
         const nomeMes = new Date(dataInicio.getFullYear(), dataInicio.getMonth()).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
         okMes = mesSel.includes(mesFormatado);
-      } else {
-        okMes = false;
-      }
+      } else okMes = false;
     }
 
     const okDistrito = (distritoSel.length === 0) || distritoSel.includes(item['_distrito'] || '');
@@ -447,9 +445,6 @@ function applyFilters() {
   updateDashboard();
 }
 
-// ===================================
-// ✅ LIMPAR FILTROS
-// ===================================
 function clearFilters() {
   ['msStatusPanel','msUnidadePanel','msEspecialidadePanel','msPrestadorPanel','msMesPanel','msDistritoPanel'].forEach(panelId => {
     const panel = document.getElementById(panelId);
@@ -474,12 +469,9 @@ function clearFilters() {
 function updateDashboard() {
   updateCards();
   updateCharts();
-  updateDemandasTable(); // ✅ tabela acompanha os filtros do painel
+  updateDemandasTable(); // ✅ tabela acompanha filtros do painel
 }
 
-// ===================================
-// ✅ ATUALIZAR CARDS
-// ===================================
 function updateCards() {
   const totalComUsuario = allData.filter(item => hasUsuarioPreenchido(item)).length;
   const filtradoComUsuario = filteredData.filter(item => hasUsuarioPreenchido(item)).length;
@@ -514,7 +506,49 @@ function updateCards() {
 }
 
 // ===================================
-// ✅ ATUALIZAR GRÁFICOS
+// ✅ PLUGIN (NÚMEROS BRANCOS EM NEGRITO)
+// ===================================
+function addValueLabelsPlugin({
+  id,
+  color = '#FFFFFF',
+  font = 'bold 16px Arial',
+  mode = 'vertical', // 'vertical' | 'horizontal'
+  suffix = ''
+} = {}) {
+  return {
+    id,
+    afterDatasetsDraw(chart) {
+      const { ctx } = chart;
+      const meta = chart.getDatasetMeta(0);
+      const dataset = chart.data.datasets[0];
+      if (!meta || !meta.data) return;
+
+      ctx.save();
+      ctx.fillStyle = color;
+      ctx.font = font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      meta.data.forEach((bar, i) => {
+        const value = dataset.data[i];
+        const text = `${value}${suffix}`;
+
+        if (mode === 'horizontal') {
+          const xPos = bar.x + (bar.width / 2);
+          ctx.fillText(text, xPos, bar.y);
+        } else {
+          const yPos = bar.y + (bar.height / 2);
+          ctx.fillText(text, bar.x, yPos);
+        }
+      });
+
+      ctx.restore();
+    }
+  };
+}
+
+// ===================================
+// ✅✅✅ ATUALIZAR GRÁFICOS
 // ===================================
 function updateCharts() {
   // DISTRITOS - todos
@@ -556,7 +590,7 @@ function updateCharts() {
   const statusValues = statusLabels.map(label => statusCount[label]);
   createStatusChart('chartStatus', statusLabels, statusValues);
 
-  // PRESTADOR
+  // PRESTADOR - todos
   const prestadoresCount = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
@@ -568,7 +602,7 @@ function updateCharts() {
   const prestadoresValues = prestadoresLabels.map(label => prestadoresCount[label]);
   createPrestadorChart('chartPrestadores', prestadoresLabels, prestadoresValues);
 
-  // PRESTADOR pendentes
+  // PRESTADOR - pendentes
   const prestadoresCountPendentes = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
@@ -590,7 +624,6 @@ function updateCharts() {
   const mesCount = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
-
     const dataInicio = parseDate(getColumnValue(item, [
       'Data Início da Pendência',
       'Data Inicio da Pendencia',
@@ -612,6 +645,7 @@ function updateCharts() {
     return nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
   });
   const mesValues = mesKeys.map(k => mesCount[k]);
+
   createPendenciasPorMesChart('chartPendenciasPorMes', mesLabels, mesValues);
 }
 
@@ -640,10 +674,7 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          labels: { font: { size: 14, weight: 'bold' }, color: '#1e3a8a' }
-        },
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#1e3a8a' } },
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(30, 58, 138, 0.9)',
@@ -657,13 +688,15 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
         x: { ticks: { font: { size: 12, weight: 'bold' }, color: '#1e3a8a', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'pendenciasMesLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
 // ===================================
-// ✅ CRIAR GRÁFICO PENDÊNCIAS POR DISTRITO
-// ✅✅✅ ALTERAÇÃO: remover legenda "Pendências"
+// ✅ GRÁFICO: REGISTROS POR DISTRITO (remove legenda "Pendências")
 // ===================================
 function createDistritoChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -674,7 +707,7 @@ function createDistritoChart(canvasId, labels, data) {
     data: {
       labels,
       datasets: [{
-        label: '', // ✅ sem texto
+        label: '', // ✅ remove o texto "Pendências" da legenda
         data,
         backgroundColor: '#1e3a8a',
         borderWidth: 0,
@@ -687,9 +720,7 @@ function createDistritoChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: false // ✅ remove a legenda inteira (remove "Pendências") [Imagem](https://www.genspark.ai/api/files/s/hQc73fLt)
-        },
+        legend: { display: false }, // ✅ remove a legenda inteira (como na imagem) [Imagem](https://www.genspark.ai/api/files/s/hQc73fLt)
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(30, 58, 138, 0.9)',
@@ -704,33 +735,14 @@ function createDistritoChart(canvasId, labels, data) {
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
     },
-    plugins: [{
-      id: 'distritoValueLabels',
-      afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        const dataset = chart.data.datasets[0];
-
-        ctx.save();
-        ctx.fillStyle = '#FFFFFF';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-
-        meta.data.forEach((bar, i) => {
-          const value = dataset.data[i];
-          const yPos = bar.y + (bar.height / 2);
-          ctx.fillText(String(value), bar.x, yPos);
-        });
-
-        ctx.restore();
-      }
-    }]
+    plugins: [
+      addValueLabelsPlugin({ id: 'distritoValueLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
 // ===================================
-// ✅ CRIAR GRÁFICO PENDÊNCIAS NÃO RESOLVIDAS POR DISTRITO
+// ✅ GRÁFICO: NÃO RESOLVIDAS POR DISTRITO
 // ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -754,10 +766,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: {
-          display: true,
-          labels: { font: { size: 14, weight: 'bold' }, color: '#dc2626' }
-        },
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#dc2626' } },
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(220, 38, 38, 0.9)',
@@ -771,21 +780,26 @@ function createDistritoPendenteChart(canvasId, labels, data) {
         x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#dc2626', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'distritoPendValueLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
 // ===================================
-// ✅ RESOLUTIVIDADE POR DISTRITO
+// ✅ RESOLUTIVIDADE POR DISTRITO (HORIZONTAL) — números com %
 // ===================================
 function createResolutividadeDistritoChart() {
   const ctx = document.getElementById('chartResolutividadeDistrito');
-  const distritosStats = {};
 
+  const distritosStats = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
+
     const distrito = item['_distrito'] || 'Não informado';
     if (!distritosStats[distrito]) distritosStats[distrito] = { total: 0, resolvidos: 0 };
+
     distritosStats[distrito].total++;
     if (item['_tipo'] === 'RESOLVIDO') distritosStats[distrito].resolvidos++;
   });
@@ -798,29 +812,73 @@ function createResolutividadeDistritoChart() {
 
   const percentuais = labels.map(d => {
     const s = distritosStats[d];
-    return s.total > 0 ? ((s.resolvidos / s.total) * 100).toFixed(1) : 0;
+    return s.total > 0 ? Number(((s.resolvidos / s.total) * 100).toFixed(1)) : 0;
   });
 
   if (chartResolutividadeDistrito) chartResolutividadeDistrito.destroy();
 
   chartResolutividadeDistrito = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Taxa de Resolutividade (%)', data: percentuais, backgroundColor: '#059669', borderWidth: 0, borderRadius: 8, barPercentage: 0.65, categoryPercentage: 0.75 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: 'Taxa de Resolutividade (%)',
+        data: percentuais,
+        backgroundColor: '#059669',
+        borderWidth: 0,
+        borderRadius: 8,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75
+      }]
+    },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#059669' } } },
+      plugins: {
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#059669' } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(5, 150, 105, 0.9)',
+          titleFont: { size: 16, weight: 'bold' },
+          bodyFont: { size: 14 },
+          padding: 14,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const distrito = context.label;
+              const stats = distritosStats[distrito];
+              return [
+                `Resolutividade: ${context.parsed.x}%`,
+                `Resolvidos: ${stats.resolvidos}`,
+                `Total: ${stats.total}`
+              ];
+            }
+          }
+        }
+      },
       scales: {
-        x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            font: { size: 12, weight: '600' },
+            color: '#4a5568',
+            callback: function(value) { return value + '%'; }
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
         y: { ticks: { font: { size: 13, weight: 'bold' }, color: '#059669' }, grid: { display: false } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'resDistLabels', mode: 'horizontal', font: 'bold 16px Arial', color: '#FFFFFF', suffix: '%' })
+    ]
   });
 }
 
 // ===================================
-// ✅ STATUS
+// ✅ STATUS — números brancos
 // ===================================
 function createStatusChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -828,21 +886,45 @@ function createStatusChart(canvasId, labels, data) {
 
   chartStatus = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Registros', data, backgroundColor: '#f97316', borderWidth: 0, borderRadius: 8, barPercentage: 0.65, categoryPercentage: 0.75 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: 'Registros',
+        data,
+        backgroundColor: '#f97316',
+        borderWidth: 0,
+        borderRadius: 8,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#f97316' } } },
+      plugins: {
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#f97316' } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(249, 115, 22, 0.9)',
+          titleFont: { size: 16, weight: 'bold' },
+          bodyFont: { size: 14 },
+          padding: 14,
+          cornerRadius: 8
+        }
+      },
       scales: {
         x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#f97316', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'statusValueLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
 // ===================================
-// ✅ PRESTADOR
+// ✅ PRESTADOR — números brancos
 // ===================================
 function createPrestadorChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -850,16 +932,40 @@ function createPrestadorChart(canvasId, labels, data) {
 
   chartPrestadores = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Pendências', data, backgroundColor: '#8b5cf6', borderWidth: 0, borderRadius: 8, barPercentage: 0.65, categoryPercentage: 0.75 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: 'Pendências',
+        data,
+        backgroundColor: '#8b5cf6',
+        borderWidth: 0,
+        borderRadius: 8,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#8b5cf6' } } },
+      plugins: {
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#8b5cf6' } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(139, 92, 246, 0.9)',
+          titleFont: { size: 16, weight: 'bold' },
+          bodyFont: { size: 14 },
+          padding: 14,
+          cornerRadius: 8
+        }
+      },
       scales: {
         x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#8b5cf6', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'prestadorValueLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
@@ -869,58 +975,132 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
 
   chartPrestadoresPendentes = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Pendências Não Resolvidas', data, backgroundColor: '#065f46', borderWidth: 0, borderRadius: 8, barPercentage: 0.65, categoryPercentage: 0.75 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: 'Pendências Não Resolvidas',
+        data,
+        backgroundColor: '#065f46',
+        borderWidth: 0,
+        borderRadius: 8,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#065f46' } } },
+      plugins: {
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#065f46' } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(6, 95, 70, 0.9)',
+          titleFont: { size: 16, weight: 'bold' },
+          bodyFont: { size: 14 },
+          padding: 14,
+          cornerRadius: 8
+        }
+      },
       scales: {
         x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#065f46', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
         y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'prestadorPendValueLabels', mode: 'vertical', font: 'bold 16px Arial', color: '#FFFFFF' })
+    ]
   });
 }
 
 // ===================================
-// ✅ RESOLUTIVIDADE POR PRESTADOR
+// ✅ RESOLUTIVIDADE POR PRESTADOR (HORIZONTAL) — números com %
 // ===================================
 function createResolutividadePrestadorChart() {
   const ctx = document.getElementById('chartResolutividadePrestador');
-  const prestadoresStats = {};
 
+  const prestadoresStats = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
+
     const prestador = item['Prestador'] || 'Não informado';
     if (!prestadoresStats[prestador]) prestadoresStats[prestador] = { total: 0, resolvidos: 0 };
+
     prestadoresStats[prestador].total++;
     if (item['_tipo'] === 'RESOLVIDO') prestadoresStats[prestador].resolvidos++;
   });
 
   const labels = Object.keys(prestadoresStats)
-    .sort((a, b) => ((prestadoresStats[b].resolvidos / prestadoresStats[b].total) * 100) - ((prestadoresStats[a].resolvidos / prestadoresStats[a].total) * 100))
+    .sort((a, b) => {
+      const percA = (prestadoresStats[a].resolvidos / prestadoresStats[a].total) * 100;
+      const percB = (prestadoresStats[b].resolvidos / prestadoresStats[b].total) * 100;
+      return percB - percA;
+    })
     .slice(0, 15);
 
   const percentuais = labels.map(p => {
     const s = prestadoresStats[p];
-    return s.total > 0 ? ((s.resolvidos / s.total) * 100).toFixed(1) : 0;
+    return s.total > 0 ? Number(((s.resolvidos / s.total) * 100).toFixed(1)) : 0;
   });
 
   if (chartResolutividadePrestador) chartResolutividadePrestador.destroy();
 
   chartResolutividadePrestador = new Chart(ctx, {
     type: 'bar',
-    data: { labels, datasets: [{ label: 'Taxa de Resolutividade (%)', data: percentuais, backgroundColor: '#059669', borderWidth: 0, borderRadius: 8, barPercentage: 0.65, categoryPercentage: 0.75 }] },
+    data: {
+      labels,
+      datasets: [{
+        label: 'Taxa de Resolutividade (%)',
+        data: percentuais,
+        backgroundColor: '#059669',
+        borderWidth: 0,
+        borderRadius: 8,
+        barPercentage: 0.65,
+        categoryPercentage: 0.75
+      }]
+    },
     options: {
       indexAxis: 'y',
       responsive: true,
       maintainAspectRatio: false,
-      plugins: { legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#059669' } } },
+      plugins: {
+        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#059669' } },
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(5, 150, 105, 0.9)',
+          titleFont: { size: 16, weight: 'bold' },
+          bodyFont: { size: 14 },
+          padding: 14,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(context) {
+              const prestador = context.label;
+              const stats = prestadoresStats[prestador];
+              return [
+                `Resolutividade: ${context.parsed.x}%`,
+                `Resolvidos: ${stats.resolvidos}`,
+                `Total: ${stats.total}`
+              ];
+            }
+          }
+        }
+      },
       scales: {
-        x: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%', font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } },
+        x: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            font: { size: 12, weight: '600' },
+            color: '#4a5568',
+            callback: function(value) { return value + '%'; }
+          },
+          grid: { color: 'rgba(0,0,0,0.06)' }
+        },
         y: { ticks: { font: { size: 13, weight: 'bold' }, color: '#059669' }, grid: { display: false } }
       }
-    }
+    },
+    plugins: [
+      addValueLabelsPlugin({ id: 'resPrestLabels', mode: 'horizontal', font: 'bold 16px Arial', color: '#FFFFFF', suffix: '%' })
+    ]
   });
 }
 
@@ -936,7 +1116,15 @@ function createPieChart(canvasId, labels, data) {
 
   chartPizzaStatus = new Chart(ctx, {
     type: 'pie',
-    data: { labels, datasets: [{ data, backgroundColor: colors.slice(0, labels.length), borderWidth: 3, borderColor: '#ffffff' }] },
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: colors.slice(0, labels.length),
+        borderWidth: 3,
+        borderColor: '#ffffff'
+      }]
+    },
     options: {
       responsive: true,
       maintainAspectRatio: false,
@@ -951,12 +1139,32 @@ function createPieChart(canvasId, labels, data) {
             usePointStyle: true,
             pointStyle: 'circle',
             boxWidth: 20,
-            boxHeight: 20
+            boxHeight: 20,
+            generateLabels: function(chart) {
+              const datasets = chart.data.datasets;
+              const labels = chart.data.labels;
+              return labels.map((label, i) => {
+                const value = datasets[0].data[i];
+                const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+                return {
+                  text: `${label} (${percentage}%)`,
+                  fillStyle: datasets[0].backgroundColor[i],
+                  strokeStyle: datasets[0].backgroundColor[i],
+                  lineWidth: 2,
+                  hidden: false,
+                  index: i
+                };
+              });
+            }
           }
         },
         tooltip: {
           enabled: true,
           backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          titleFont: { size: 14, weight: 'bold' },
+          bodyFont: { size: 13 },
+          padding: 12,
+          cornerRadius: 8,
           callbacks: {
             label: function(context) {
               const value = context.parsed;
@@ -966,7 +1174,30 @@ function createPieChart(canvasId, labels, data) {
           }
         }
       }
-    }
+    },
+    plugins: [{
+      id: 'customPieLabelsInside',
+      afterDatasetsDraw: function(chart) {
+        const ctx = chart.ctx;
+        const dataset = chart.data.datasets[0];
+        ctx.save();
+        ctx.font = 'bold 14px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        chart.getDatasetMeta(0).data.forEach(function(element, index) {
+          const value = dataset.data[index];
+          const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
+          if (parseFloat(percentage) > 5) {
+            ctx.fillStyle = '#ffffff';
+            const position = element.tooltipPosition();
+            ctx.fillText(`${percentage}%`, position.x, position.y);
+          }
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
@@ -987,11 +1218,14 @@ function parseDate(dateString) {
 
 function formatDate(dateString) {
   if (!dateString || dateString === '-') return '-';
+
   const date = parseDate(dateString);
   if (!date || isNaN(date.getTime())) return dateString;
+
   const day = String(date.getDate()).padStart(2, '0');
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
+
   return `${day}/${month}/${year}`;
 }
 
@@ -1003,10 +1237,11 @@ function refreshData() {
 }
 
 // ===================================
-// DOWNLOAD EXCEL (mantido)
+// DOWNLOAD EXCEL (mantido como estava)
 // ===================================
 function downloadExcel() {
   const dataParaExportar = filteredData.filter(item => hasUsuarioPreenchido(item));
+
   if (dataParaExportar.length === 0) {
     alert('Não há dados com Usuário preenchido para exportar.');
     return;
@@ -1021,25 +1256,49 @@ function downloadExcel() {
     'Data Solicitação': getColumnValue(item, ['Data da Solicitação','Data Solicitação','Data da Solicitacao','Data Solicitacao'], ''),
     'Unidade Solicitante': item['Unidade Solicitante'] || '',
     'CBO Especialidade': item['Cbo Especialidade'] || '',
-    'Data Início Pendência': getColumnValue(item, ['Data Início da Pendência','Data Início Pendência','Data Inicio da Pendencia','Data Inicio Pendencia'], ''),
-    'Status': item['Status'] || '',
-    'Prestador': item['Prestador'] || '',
-    'Usuário': getColumnValue(item, ['Usuário','Usuario'], ''),
-    'Data Final Prazo 15d': getColumnValue(item, ['Data Final do Prazo (Pendência com 15 dias)','Data Final do Prazo (Pendencia com 15 dias)','Data Final Prazo 15d','Prazo 15 dias'], ''),
-    'Data Envio Email 15d': getColumnValue(item, ['Data do envio do Email (Prazo: Pendência com 15 dias)','Data do envio do Email (Prazo: Pendencia com 15 dias)','Data Envio Email 15d','Email 15 dias'], ''),
-    'Data Final Prazo 30d': getColumnValue(item, ['Data Final do Prazo (Pendência com 30 dias)','Data Final do Prazo (Pendencia com 30 dias)','Data Final Prazo 30d','Prazo 30 dias'], ''),
-    'Data Envio Email 30d': getColumnValue(item, ['Data do envio do Email (Prazo: Pendência com 30 dias)','Data do envio do Email (Prazo: Pendencia com 30 dias)','Data Envio Email 30d','Email 30 dias'], '')
-  }));
+            'Data Início Pendência': getColumnValue(item, ['Data Início da Pendência','Data Início Pendência','Data Inicio da Pendencia','Data Inicio Pendencia'], ''),
+        'Status': item['Status'] || '',
+        'Prestador': item['Prestador'] || '',
+        'Usuário': getColumnValue(item, ['Usuário','Usuario'], ''),
+        'Data Final Prazo 15d': getColumnValue(item, ['Data Final do Prazo (Pendência com 15 dias)','Data Final do Prazo (Pendencia com 15 dias)','Data Final Prazo 15d','Prazo 15 dias'], ''),
+        'Data Envio Email 15d': getColumnValue(item, ['Data do envio do Email (Prazo: Pendência com 15 dias)','Data do envio do Email (Prazo: Pendencia com 15 dias)','Data Envio Email 15d','Email 15 dias'], ''),
+        'Data Final Prazo 30d': getColumnValue(item, ['Data Final do Prazo (Pendência com 30 dias)','Data Final do Prazo (Pendencia com 30 dias)','Data Final Prazo 30d','Prazo 30 dias'], ''),
+        'Data Envio Email 30d': getColumnValue(item, ['Data do envio do Email (Prazo: Pendência com 30 dias)','Data do envio do Email (Prazo: Pendencia com 30 dias)','Data Envio Email 30d','Email 30 dias'], '')
+    }));
 
-  const ws = XLSX.utils.json_to_sheet(exportData);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Dados Completos');
-  const hoje = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `Dados_Todos_Distritos_${hoje}.xlsx`);
+    const ws = XLSX.utils.json_to_sheet(exportData);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Dados Completos');
+
+    ws['!cols'] = [
+        { wch: 18 },
+        { wch: 18 },
+        { wch: 16 },
+        { wch: 20 },
+        { wch: 30 },
+        { wch: 18 },
+        { wch: 30 },
+        { wch: 30 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 25 },
+        { wch: 20 },
+        { wch: 18 },
+        { wch: 20 },
+        { wch: 18 },
+        { wch: 20 }
+    ];
+
+    const hoje = new Date().toISOString().split('T')[0];
+    XLSX.writeFile(wb, `Dados_Todos_Distritos_${hoje}.xlsx`);
 }
 
 /* =========================================================
-   ✅✅✅ TABELA "Todas as Demandas" (Busca + Filtro por coluna + Paginação 100)
+   ✅✅✅ TABELA "Todas as Demandas"
+   - Busca acima
+   - Filtro por coluna com seleções múltiplas
+   - 100 por página
+   - Só conta/mostra registros com Usuário preenchido
 ========================================================= */
 
 const TABLE_PAGE_SIZE = 100;
@@ -1118,7 +1377,6 @@ function buildTableHeaderWithFilters(rows) {
     title.className = 'th-title';
     title.textContent = col.label;
 
-    // filtro
     const filterBox = document.createElement('div');
     filterBox.className = 'th-filter';
     filterBox.setAttribute('data-key', col.key);
@@ -1135,8 +1393,10 @@ function buildTableHeaderWithFilters(rows) {
     const panel = document.createElement('div');
     panel.className = 'th-filter-panel';
 
-    // values disponíveis (baseados nos dados já filtrados do painel)
-    const values = [...new Set(rows.map(r => r[col.key]).filter(v => v && v !== '-'))].sort((a,b)=> String(a).localeCompare(String(b)));
+    const values = [...new Set(rows.map(r => r[col.key]).filter(v => v && v !== '-'))]
+      .sort((a,b)=> String(a).localeCompare(String(b)));
+
+    if (!tableColumnFilters[col.key]) tableColumnFilters[col.key] = new Set();
 
     const actions = document.createElement('div');
     actions.className = 'th-filter-actions';
@@ -1147,9 +1407,6 @@ function buildTableHeaderWithFilters(rows) {
 
     const list = document.createElement('div');
     list.className = 'th-filter-list';
-
-    // estado atual
-    if (!tableColumnFilters[col.key]) tableColumnFilters[col.key] = new Set();
 
     actions.querySelector('.th-ms-all').onclick = () => {
       tableColumnFilters[col.key] = new Set(values);
@@ -1200,7 +1457,6 @@ function buildTableHeaderWithFilters(rows) {
 function applyTableFilters(rows) {
   let out = [...rows];
 
-  // busca global
   if (tableSearchQuery) {
     out = out.filter(r => {
       const blob = TABLE_COLUMNS.map(c => r[c.key]).join(' | ');
@@ -1208,13 +1464,12 @@ function applyTableFilters(rows) {
     });
   }
 
-  // filtros por coluna
   TABLE_COLUMNS.forEach(col => {
     const set = tableColumnFilters[col.key];
     if (set && set.size > 0) {
-        out = out.filter(r => r[col.key] && set.has(r[col.key]));
-      }
-    });
+      out = out.filter(r => r[col.key] && set.has(r[col.key]));
+    }
+  });
 
   return out;
 }
@@ -1234,20 +1489,14 @@ function paginate(rows) {
 }
 
 function updateDemandasTable() {
-  // base: dados filtrados do painel + somente com Usuário preenchido
   const baseItems = filteredData.filter(item => hasUsuarioPreenchido(item));
   const rows = baseItems.map(getTableRowObject);
 
-  // monta cabeçalho (com filtros por coluna) usando o dataset atual do painel
   buildTableHeaderWithFilters(rows);
 
-  // aplica busca + filtros das colunas
   const filteredRows = applyTableFilters(rows);
-
-  // paginação
   const { pageRows, total, totalPages } = paginate(filteredRows);
 
-  // render body
   const tbody = document.getElementById('demandasTbody');
   tbody.innerHTML = '';
 
@@ -1261,14 +1510,12 @@ function updateDemandasTable() {
     tbody.appendChild(tr);
   });
 
-  // info / paginação
   const tableInfo = document.getElementById('tableInfo');
   tableInfo.textContent = `${total} registros`;
 
   const pageIndicator = document.getElementById('pageIndicator');
   pageIndicator.textContent = `Página ${tableCurrentPage} de ${totalPages}`;
 
-  // desabilita botões se necessário
   const btns = document.querySelectorAll('.table-pagination .btn-page');
   const btnPrev = btns[0];
   const btnNext = btns[1];
@@ -1276,3 +1523,5 @@ function updateDemandasTable() {
   if (btnPrev) btnPrev.disabled = (tableCurrentPage <= 1);
   if (btnNext) btnNext.disabled = (tableCurrentPage >= totalPages);
 }
+
+     
