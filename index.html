@@ -171,4 +171,166 @@
               <span class="multi-select-text" id="msPrestadorText">Todos</span>
               <i class="fas fa-chevron-down"></i>
             </button>
-            <div class="multi-select-panel" id="msPrestador<span class="cursor">█</span>
+            <div class="multi-select-panel" id="msPrestadorPanel"></div>
+          </div>
+        </div>
+
+        <div class="filter-box">
+          <label>Filtrar por Mês:</label>
+          <div class="multi-select" id="msMes">
+            <button type="button" class="multi-select-btn" onclick="toggleMultiSelect('msMes')">
+              <span class="multi-select-text" id="msMesText">Todos os Meses</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="multi-select-panel" id="msMesPanel"></div>
+          </div>
+        </div>
+
+        <div class="filter-box">
+          <label>Filtrar por Distrito:</label>
+          <div class="multi-select" id="msDistrito">
+            <button type="button" class="multi-select-btn" onclick="toggleMultiSelect('msDistrito')">
+              <span class="multi-select-text" id="msDistritoText">Todos os Distritos</span>
+              <i class="fas fa-chevron-down"></i>
+            </button>
+            <div class="multi-select-panel" id="msDistritoPanel"></div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-clear" onclick="clearFilters()">
+        <i class="fas fa-times-circle"></i> Limpar Filtros
+      </button>
+    </div>
+
+    <!-- ✅ 1º GRÁFICO -->
+    <div class="chart-box chart-box-full">
+      <h3 class="chart-title">Pendências Não Resolvidas por Distrito</h3>
+      <div class="chart-wrapper-distrito">
+        <canvas id="chartDistritosPendentes"></canvas>
+      </div>
+    </div>
+
+    <!-- ✅ 2º GRÁFICO -->
+    <div class="chart-box chart-box-full">
+      <h3 class="chart-title">Registros Geral de Pendências por Distrito</h3>
+      <div class="chart-wrapper-distrito">
+        <canvas id="chartDistritos"></canvas>
+      </div>
+    </div>
+
+    <!-- ✅ 3º GRÁFICO -->
+    <div class="chart-box chart-box-full">
+      <h3 class="chart-title">Registros Geral de Pendências por Status</h3>
+      <div class="chart-wrapper-distrito">
+        <canvas id="chartStatus"></canvas>
+      </div>
+    </div>
+
+    <!-- PRESTADOR -->
+    <div class="charts-container">
+      <div class="chart-box">
+        <h3 class="chart-title">Registros Geral de Pendências por Prestador</h3>
+        <div class="chart-wrapper">
+          <canvas id="chartPrestadores"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <h3 class="chart-title">Pendências Não Resolvidas por Prestador</h3>
+        <div class="chart-wrapper">
+          <canvas id="chartPrestadoresPendentes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- RESOLUTIVIDADE -->
+    <div class="charts-container-resolutividade">
+      <div class="chart-box">
+        <h3 class="chart-title">Estatística de Resolutividade por Distrito</h3>
+        <div class="chart-wrapper">
+          <canvas id="chartResolutividadeDistrito"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <h3 class="chart-title">Estatística de Resolutividade por Prestador</h3>
+        <div class="chart-wrapper">
+          <canvas id="chartResolutividadePrestador"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIZZA + POR MÊS -->
+    <div class="charts-container">
+      <div class="chart-box">
+        <h3 class="chart-title">Distribuição Percentual por Status</h3>
+        <div class="chart-wrapper-pizza">
+          <canvas id="chartPizzaStatus"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <h3 class="chart-title">Total de Pendências por Mês</h3>
+        <div class="chart-wrapper">
+          <canvas id="chartPendenciasPorMes"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅✅✅ NOVA TABELA -->
+    <div class="table-section">
+      <h3 class="section-title"><i class="fas fa-table"></i> Todas as Demandas</h3>
+
+      <div class="table-search">
+        <i class="fas fa-search"></i>
+        <input id="tableSearchInput" type="text" placeholder="Pesquisar na tabela..." oninput="onTableSearch()">
+      </div>
+
+      <div class="table-wrapper">
+        <table class="data-table" id="demandasTable">
+          <thead id="demandasThead"></thead>
+          <tbody id="demandasTbody"></tbody>
+        </table>
+      </div>
+
+      <div class="table-footer">
+        <div class="table-info" id="tableInfo">0 registros</div>
+
+        <div class="table-pagination">
+          <button class="btn-page" onclick="tablePrevPage()">Anterior</button>
+          <span class="page-indicator" id="pageIndicator">Página 1</span>
+          <button class="btn-page" onclick="tableNextPage()">Próximo</button>
+        </div>
+
+        <div class="table-page-size">
+          <span>Exibindo:</span>
+          <strong>100</strong>
+          <span>por página</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="footer">
+    <p>DIRETORIA DE REGULAÇÃO</p>
+    <p>CENTRAL DE MARCAÇÃO DE CONSULTAS</p>
+    <p>REFERÊNCIA GIOVANNA</p>
+    <p class="footer-credits">Página Criada por Ana P. A. Silva Matr:201704/Assistente Adm. Diretoria de Regulação - Ceaps</p>
+  </footer>
+
+  <!-- Loading Overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-content">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Carregando dados das planilhas...</p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="script.js"></script>
+</body>
+</html>
