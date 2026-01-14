@@ -67,7 +67,7 @@ const SHEETS = [
   },
   {
     name: 'RESOLVIDOS RESSACA',
-    url: 'https://docs.google.com/spreadsheets/d/1aIsq1a8Lb90M19TQdiJG_WyX7wzzC2WRohelJY6A-u8/gviz/tq?tqx=out:csv&gid=278071504',
+    url: 'https://docs.google.com/spreadsheets/d/1aIsq1a8Lb90M19TQdiJG_WyX7wzzC2WRohelJY6A-u8/edit?gid=699447584#gid=699447584',
     distrito: 'RESSACA',
     tipo: 'RESOLVIDO'
   },
