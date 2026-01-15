@@ -153,11 +153,11 @@ function getColumnValue(item, possibleNames, defaultValue = '-') {
   for (let name of possibleNames) {
     // Busca exata
     if (item.hasOwnProperty(name) && item[name]) return item[name];
-    
+
     // Busca com trim (remove espaços)
     const trimmedName = name.trim();
     if (item.hasOwnProperty(trimmedName) && item[trimmedName]) return item[trimmedName];
-    
+
     // Busca case-insensitive
     const keys = Object.keys(item);
     const foundKey = keys.find(k => k.toLowerCase().trim() === name.toLowerCase().trim());
@@ -282,7 +282,7 @@ async function loadData() {
       if (rows.length < 2) return;
 
       const headers = rows[0];
-      
+
       const sheetData = rows.slice(1)
         .filter(row => row.length > 1 && row[0])
         .map(row => {
@@ -446,10 +446,10 @@ function applyFilters() {
     const okDistrito = (distritoSel.length === 0) || distritoSel.includes(item['_distrito'] || '');
     const okUnidade = (unidadeSel.length === 0) || unidadeSel.includes(item['Unidade Solicitante'] || '');
     const okPrest = (prestadorSel.length === 0) || prestadorSel.includes(item['Prestador'] || '');
-    
+
     const cboValue = getColumnValue(item, ['Cbo Especialidade', 'CBO Especialidade', 'CBO', 'Especialidade', 'Especialidade CBO']);
     const okCbo = (cboEspecialidadeSel.length === 0) || cboEspecialidadeSel.includes(cboValue);
-    
+
     const okStatus = (statusSel.length === 0) || statusSel.includes(item['Status'] || '');
 
     let okMes = true;
@@ -533,14 +533,15 @@ function updateCards() {
   document.getElementById('percentFiltrados').textContent = percentFiltrados + '%';
 }
 
-// ===================================
-// ✅ PLUGIN PARA NÚMEROS FORA DAS BARRAS (ESTILO REFERÊNCIA)
-// ===================================
-function addOutsideLabelsHorizontal({
+// =======================================================
+// ✅✅✅ PLUGIN: NÚMEROS DENTRO DAS BARRAS (BRANCO E NEGRITO)
+// (apenas para gráficos de barras HORIZONTAIS)
+// =======================================================
+function addInsideLabelsHorizontal({
   id,
-  color = '#000000',
+  color = '#ffffff',
   font = 'bold 14px Arial',
-  offset = 8
+  paddingRight = 10
 } = {}) {
   return {
     id,
@@ -553,14 +554,19 @@ function addOutsideLabelsHorizontal({
       ctx.save();
       ctx.fillStyle = color;
       ctx.font = font;
-      ctx.textAlign = 'left';
+      ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
 
       meta.data.forEach((bar, i) => {
         const value = dataset.data[i];
         const text = `${value}`;
-        const xPos = bar.x + offset;
-        ctx.fillText(text, xPos, bar.y);
+
+        // Em gráficos horizontais (indexAxis:'y'), o "fim" da barra é bar.x
+        // Colocamos o texto um pouco para dentro: bar.x - paddingRight
+        const xPos = bar.x - paddingRight;
+        const yPos = bar.y;
+
+        ctx.fillText(text, xPos, yPos);
       });
 
       ctx.restore();
@@ -717,11 +723,11 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
       }
     },
     plugins: [
-      addOutsideLabelsHorizontal({
-        id: 'pendenciasMesOutsideLabels',
-        color: '#000000',
+      addInsideLabelsHorizontal({
+        id: 'pendenciasMesInsideLabels',
+        color: '#ffffff',
         font: 'bold 14px Arial',
-        offset: 8
+        paddingRight: 10
       })
     ]
   });
@@ -978,11 +984,11 @@ function createPrestadorChart(canvasId, labels, data) {
       }
     },
     plugins: [
-      addOutsideLabelsHorizontal({
-        id: 'prestadorOutsideLabels',
-        color: '#000000',
+      addInsideLabelsHorizontal({
+        id: 'prestadorInsideLabels',
+        color: '#ffffff',
         font: 'bold 14px Arial',
-        offset: 8
+        paddingRight: 10
       })
     ]
   });
@@ -1035,11 +1041,11 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       }
     },
     plugins: [
-      addOutsideLabelsHorizontal({
-        id: 'prestadorPendOutsideLabels',
-        color: '#000000',
+      addInsideLabelsHorizontal({
+        id: 'prestadorPendInsideLabels',
+        color: '#ffffff',
         font: 'bold 14px Arial',
-        offset: 8
+        paddingRight: 10
       })
     ]
   });
