@@ -153,11 +153,11 @@ function getColumnValue(item, possibleNames, defaultValue = '-') {
   for (let name of possibleNames) {
     // Busca exata
     if (item.hasOwnProperty(name) && item[name]) return item[name];
-
+    
     // Busca com trim (remove espaços)
     const trimmedName = name.trim();
     if (item.hasOwnProperty(trimmedName) && item[trimmedName]) return item[trimmedName];
-
+    
     // Busca case-insensitive
     const keys = Object.keys(item);
     const foundKey = keys.find(k => k.toLowerCase().trim() === name.toLowerCase().trim());
@@ -282,7 +282,7 @@ async function loadData() {
       if (rows.length < 2) return;
 
       const headers = rows[0];
-
+      
       const sheetData = rows.slice(1)
         .filter(row => row.length > 1 && row[0])
         .map(row => {
@@ -446,10 +446,10 @@ function applyFilters() {
     const okDistrito = (distritoSel.length === 0) || distritoSel.includes(item['_distrito'] || '');
     const okUnidade = (unidadeSel.length === 0) || unidadeSel.includes(item['Unidade Solicitante'] || '');
     const okPrest = (prestadorSel.length === 0) || prestadorSel.includes(item['Prestador'] || '');
-
+    
     const cboValue = getColumnValue(item, ['Cbo Especialidade', 'CBO Especialidade', 'CBO', 'Especialidade', 'Especialidade CBO']);
     const okCbo = (cboEspecialidadeSel.length === 0) || cboEspecialidadeSel.includes(cboValue);
-
+    
     const okStatus = (statusSel.length === 0) || statusSel.includes(item['Status'] || '');
 
     let okMes = true;
@@ -533,16 +533,10 @@ function updateCards() {
   document.getElementById('percentFiltrados').textContent = percentFiltrados + '%';
 }
 
-// =======================================================
-// ✅✅✅ PLUGIN: NÚMEROS DENTRO DAS BARRAS (BRANCO E NEGRITO)
-// (apenas para gráficos de barras HORIZONTAIS)
-// =======================================================
-function addInsideLabelsHorizontal({
-  id,
-  color = '#ffffff',
-  font = 'bold 14px Arial',
-  paddingRight = 10
-} = {}) {
+// ===================================
+// ✅ PLUGIN PARA NÚMEROS DENTRO DAS BARRAS (BRANCO E NEGRITO)
+// ===================================
+function addInsideLabelsVertical(id) {
   return {
     id,
     afterDatasetsDraw(chart) {
@@ -552,20 +546,16 @@ function addInsideLabelsHorizontal({
       if (!meta || !meta.data) return;
 
       ctx.save();
-      ctx.fillStyle = color;
-      ctx.font = font;
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
 
       meta.data.forEach((bar, i) => {
         const value = dataset.data[i];
         const text = `${value}`;
-
-        // Em gráficos horizontais (indexAxis:'y'), o "fim" da barra é bar.x
-        // Colocamos o texto um pouco para dentro: bar.x - paddingRight
-        const xPos = bar.x - paddingRight;
-        const yPos = bar.y;
-
+        const xPos = bar.x;
+        const yPos = bar.y + 25; // Dentro da barra
         ctx.fillText(text, xPos, yPos);
       });
 
@@ -722,17 +712,36 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
         }
       }
     },
-    plugins: [
-      addInsideLabelsHorizontal({
-        id: 'pendenciasMesInsideLabels',
-        color: '#ffffff',
-        font: 'bold 14px Arial',
-        paddingRight: 10
-      })
-    ]
+    plugins: [{
+      id: 'pendenciasMesInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x - 8;
+          ctx.fillText(text, xPos, bar.y);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
+// ===================================
+// ✅ GRÁFICO: Registros Geral de Pendências por Distrito (COM LEGENDAS DENTRO)
+// ===================================
 function createDistritoChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (chartDistritos) chartDistritos.destroy();
@@ -756,23 +765,33 @@ function createDistritoChart(canvasId, labels, data) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          enabled: true,
-          backgroundColor: 'rgba(30, 58, 138, 0.9)',
-          titleFont: { size: 16, weight: 'bold' },
-          bodyFont: { size: 14 },
-          padding: 14,
-          cornerRadius: 8
-        }
+        tooltip: { enabled: false }
       },
       scales: {
-        x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#1e3a8a', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
+        x: { 
+          ticks: { 
+            font: { size: 13, weight: 'bold' }, 
+            color: '#1e3a8a', 
+            maxRotation: 45, 
+            minRotation: 0 
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          beginAtZero: true, 
+          ticks: { display: false }, 
+          grid: { display: false },
+          border: { display: false }
+        }
       }
-    }
+    },
+    plugins: [addInsideLabelsVertical('distritosInsideLabels')]
   });
 }
 
+// ===================================
+// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (COM LEGENDAS DENTRO)
+// ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (chartDistritosPendentes) chartDistritosPendentes.destroy();
@@ -782,7 +801,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
     data: {
       labels,
       datasets: [{
-        label: 'Pendências Não Resolvidas',
+        label: '',
         data,
         backgroundColor: '#dc2626',
         borderWidth: 0,
@@ -795,21 +814,28 @@ function createDistritoPendenteChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#dc2626' } },
-        tooltip: {
-          enabled: true,
-          backgroundColor: 'rgba(220, 38, 38, 0.9)',
-          titleFont: { size: 16, weight: 'bold' },
-          bodyFont: { size: 14 },
-          padding: 14,
-          cornerRadius: 8
-        }
+        legend: { display: false },
+        tooltip: { enabled: false }
       },
       scales: {
-        x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#dc2626', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
+        x: { 
+          ticks: { 
+            font: { size: 13, weight: 'bold' }, 
+            color: '#dc2626', 
+            maxRotation: 45, 
+            minRotation: 0 
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          beginAtZero: true, 
+          ticks: { display: false }, 
+          grid: { display: false },
+          border: { display: false }
+        }
       }
-    }
+    },
+    plugins: [addInsideLabelsVertical('distritoPendenteInsideLabels')]
   });
 }
 
@@ -983,14 +1009,30 @@ function createPrestadorChart(canvasId, labels, data) {
         }
       }
     },
-    plugins: [
-      addInsideLabelsHorizontal({
-        id: 'prestadorInsideLabels',
-        color: '#ffffff',
-        font: 'bold 14px Arial',
-        paddingRight: 10
-      })
-    ]
+    plugins: [{
+      id: 'prestadorInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x - 8;
+          ctx.fillText(text, xPos, bar.y);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
@@ -1040,14 +1082,30 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
         }
       }
     },
-    plugins: [
-      addInsideLabelsHorizontal({
-        id: 'prestadorPendInsideLabels',
-        color: '#ffffff',
-        font: 'bold 14px Arial',
-        paddingRight: 10
-      })
-    ]
+    plugins: [{
+      id: 'prestadorPendInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x - 8;
+          ctx.fillText(text, xPos, bar.y);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
