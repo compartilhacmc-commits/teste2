@@ -534,38 +534,7 @@ function updateCards() {
 }
 
 // ===================================
-// ✅ PLUGIN PARA NÚMEROS DENTRO DAS BARRAS (BRANCO E NEGRITO)
-// ===================================
-function addInsideLabelsVertical(id) {
-  return {
-    id,
-    afterDatasetsDraw(chart) {
-      const { ctx } = chart;
-      const meta = chart.getDatasetMeta(0);
-      const dataset = chart.data.datasets[0];
-      if (!meta || !meta.data) return;
-
-      ctx.save();
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 16px Arial';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'bottom';
-
-      meta.data.forEach((bar, i) => {
-        const value = dataset.data[i];
-        const text = `${value}`;
-        const xPos = bar.x;
-        const yPos = bar.y + 25; // Dentro da barra
-        ctx.fillText(text, xPos, yPos);
-      });
-
-      ctx.restore();
-    }
-  };
-}
-
-// ===================================
-// ✅ ATUALIZAR GRÁFICOS
+// ✅ ATUALIZAR GRÁFICOS (COM LEGENDAS DENTRO DAS BARRAS)
 // ===================================
 function updateCharts() {
   // DISTRITOS - todos
@@ -740,7 +709,7 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Registros Geral de Pendências por Distrito (COM LEGENDAS DENTRO)
+// ✅ GRÁFICO: Registros Geral de Pendências por Distrito (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
 // ===================================
 function createDistritoChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -785,12 +754,36 @@ function createDistritoChart(canvasId, labels, data) {
         }
       }
     },
-    plugins: [addInsideLabelsVertical('distritosInsideLabels')]
+    plugins: [{
+      id: 'distritosInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x;
+          const yPos = bar.y + 20;
+          ctx.fillText(text, xPos, yPos);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
 // ===================================
-// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (COM LEGENDAS DENTRO)
+// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
 // ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -835,7 +828,31 @@ function createDistritoPendenteChart(canvasId, labels, data) {
         }
       }
     },
-    plugins: [addInsideLabelsVertical('distritoPendenteInsideLabels')]
+    plugins: [{
+      id: 'distritoPendenteInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x;
+          const yPos = bar.y + 20;
+          ctx.fillText(text, xPos, yPos);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
@@ -923,6 +940,9 @@ function createResolutividadeDistritoChart() {
   });
 }
 
+// ===================================
+// ✅ GRÁFICO: Registros Geral de Pendências por Status (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
+// ===================================
 function createStatusChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (chartStatus) chartStatus.destroy();
@@ -932,7 +952,7 @@ function createStatusChart(canvasId, labels, data) {
     data: {
       labels,
       datasets: [{
-        label: 'Registros',
+        label: '',
         data,
         backgroundColor: '#f97316',
         borderWidth: 0,
@@ -945,21 +965,52 @@ function createStatusChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#f97316' } },
-        tooltip: {
-          enabled: true,
-          backgroundColor: 'rgba(249, 115, 22, 0.9)',
-          titleFont: { size: 16, weight: 'bold' },
-          bodyFont: { size: 14 },
-          padding: 14,
-          cornerRadius: 8
-        }
+        legend: { display: false },
+        tooltip: { enabled: false }
       },
       scales: {
-        x: { ticks: { font: { size: 13, weight: 'bold' }, color: '#f97316', maxRotation: 45, minRotation: 0 }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { font: { size: 12, weight: '600' }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
+        x: { 
+          ticks: { 
+            font: { size: 13, weight: 'bold' }, 
+            color: '#f97316', 
+            maxRotation: 45, 
+            minRotation: 0 
+          }, 
+          grid: { display: false } 
+        },
+        y: { 
+          beginAtZero: true, 
+          ticks: { display: false }, 
+          grid: { display: false },
+          border: { display: false }
+        }
       }
-    }
+    },
+    plugins: [{
+      id: 'statusInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x;
+          const yPos = bar.y + 20;
+          ctx.fillText(text, xPos, yPos);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
