@@ -534,7 +534,7 @@ function updateCards() {
 }
 
 // ===================================
-// ✅ ATUALIZAR GRÁFICOS (COM LEGENDAS DENTRO DAS BARRAS)
+// ✅ ATUALIZAR GRÁFICOS (COM LEGENDAS DENTRO DAS BARRAS - NO MEIO)
 // ===================================
 function updateCharts() {
   // DISTRITOS - todos
@@ -709,7 +709,7 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Registros Geral de Pendências por Distrito (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
+// ✅ GRÁFICO: Registros Geral de Pendências por Distrito (LEGENDAS NO MEIO DA BARRA - BRANCO E NEGRITO)
 // ===================================
 function createDistritoChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -772,7 +772,8 @@ function createDistritoChart(canvasId, labels, data) {
           const value = dataset.data[i];
           const text = `${value}`;
           const xPos = bar.x;
-          const yPos = bar.y + 20;
+          // ✅ AJUSTE: Posição Y no meio da barra
+          const yPos = bar.y + (bar.height / 2);
           ctx.fillText(text, xPos, yPos);
         });
 
@@ -783,7 +784,7 @@ function createDistritoChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
+// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (LEGENDAS NO MEIO DA BARRA - BRANCO E NEGRITO)
 // ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -846,7 +847,8 @@ function createDistritoPendenteChart(canvasId, labels, data) {
           const value = dataset.data[i];
           const text = `${value}`;
           const xPos = bar.x;
-          const yPos = bar.y + 20;
+          // ✅ AJUSTE: Posição Y no meio da barra
+          const yPos = bar.y + (bar.height / 2);
           ctx.fillText(text, xPos, yPos);
         });
 
@@ -941,7 +943,7 @@ function createResolutividadeDistritoChart() {
 }
 
 // ===================================
-// ✅ GRÁFICO: Registros Geral de Pendências por Status (COM LEGENDAS DENTRO - BRANCO E NEGRITO)
+// ✅ GRÁFICO: Registros Geral de Pendências por Status (LEGENDAS NO MEIO DA BARRA - BRANCO E NEGRITO)
 // ===================================
 function createStatusChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1004,7 +1006,8 @@ function createStatusChart(canvasId, labels, data) {
           const value = dataset.data[i];
           const text = `${value}`;
           const xPos = bar.x;
-          const yPos = bar.y + 20;
+          // ✅ AJUSTE: Posição Y no meio da barra
+          const yPos = bar.y + (bar.height / 2);
           ctx.fillText(text, xPos, yPos);
         });
 
