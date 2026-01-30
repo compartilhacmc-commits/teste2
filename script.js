@@ -157,13 +157,14 @@ function hasUsuarioPreenchido(item) {
 
 // ===================================
 // NOVA FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
+// RETORNA OBJETO COM STATUS E DATA DE VENCIMENTO
 // ===================================
-function isCanceladoPorVencimentoPrazo(item) {
+function getCanceladoPorVencimentoInfo(item) {
   // Deve estar na aba RESOLVIDOS
-  if (item['_tipo'] !== 'RESOLVIDO') return false;
+  if (item['_tipo'] !== 'RESOLVIDO') return { isCancelado: false, dataVencimento: null };
   
   // Deve ter usuário preenchido
-  if (!hasUsuarioPreenchido(item)) return false;
+  if (!hasUsuarioPreenchido(item)) return { isCancelado: false, dataVencimento: null };
   
   // Deve ter data preenchida na coluna "Data do envio do Email (Prazo: Pendência com 30 dias)"
   const dataEmail30 = getColumnValue(item, [
@@ -176,7 +177,16 @@ function isCanceladoPorVencimentoPrazo(item) {
   const dataEmail30Parsed = parseDate(dataEmail30);
   
   // Se a data está preenchida e é válida, considera como cancelado por vencimento
-  return dataEmail30Parsed !== null && !isNaN(dataEmail30Parsed.getTime());
+  if (dataEmail30Parsed !== null && !isNaN(dataEmail30Parsed.getTime())) {
+    return { isCancelado: true, dataVencimento: dataEmail30Parsed };
+  }
+  
+  return { isCancelado: false, dataVencimento: null };
+}
+
+// Função auxiliar para compatibilidade com código existente
+function isCanceladoPorVencimentoPrazo(item) {
+  return getCanceladoPorVencimentoInfo(item).isCancelado;
 }
 
 // ===================================
@@ -488,15 +498,26 @@ function populateMonthFilter() {
   const mesesSet = new Set();
 
   allData.forEach(item => {
-    const dataInicio = parseDate(getColumnValue(item, [
-      'Data Início da Pendência',
-      'Data Inicio da Pendencia',
-      'Data Início Pendência',
-      'Data Inicio Pendencia'
-    ]));
+    // Para cancelados por vencimento, usar data de vencimento
+    const canceladoInfo = getCanceladoPorVencimentoInfo(item);
+    
+    let dataParaMes = null;
+    
+    if (canceladoInfo.isCancelado) {
+      // Usa data de vencimento do prazo
+      dataParaMes = canceladoInfo.dataVencimento;
+    } else {
+      // Usa data início da pendência
+      dataParaMes = parseDate(getColumnValue(item, [
+        'Data Início da Pendência',
+        'Data Inicio da Pendencia',
+        'Data Início Pendência',
+        'Data Inicio Pendencia'
+      ]));
+    }
 
-    if (dataInicio) {
-      const mesAno = `${dataInicio.getFullYear()}-${String(dataInicio.getMonth() + 1).padStart(2, '0')}`;
+    if (dataParaMes) {
+      const mesAno = `${dataParaMes.getFullYear()}-${String(dataParaMes.getMonth() + 1).padStart(2, '0')}`;
       mesesSet.add(mesAno);
     }
   });
@@ -539,17 +560,31 @@ function applyFilters() {
 
     let okMes = true;
     if (mesSel.length > 0) {
-      const dataInicio = parseDate(getColumnValue(item, [
-        'Data Início da Pendência',
-        'Data Inicio da Pendencia',
-        'Data Início Pendência',
-        'Data Inicio Pendencia'
-      ]));
-      if (dataInicio) {
-        const nomeMes = new Date(dataInicio.getFullYear(), dataInicio.getMonth()).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
+      // CORREÇÃO PRINCIPAL: Para cancelados por vencimento, usar data de vencimento
+      const canceladoInfo = getCanceladoPorVencimentoInfo(item);
+      
+      let dataParaFiltro = null;
+      
+      if (canceladoInfo.isCancelado) {
+        // Usa data de vencimento do prazo (30 dias)
+        dataParaFiltro = canceladoInfo.dataVencimento;
+      } else {
+        // Usa data início da pendência
+        dataParaFiltro = parseDate(getColumnValue(item, [
+          'Data Início da Pendência',
+          'Data Inicio da Pendencia',
+          'Data Início Pendência',
+          'Data Inicio Pendencia'
+        ]));
+      }
+      
+      if (dataParaFiltro) {
+        const nomeMes = new Date(dataParaFiltro.getFullYear(), dataParaFiltro.getMonth()).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' });
         const mesFormatado = nomeMes.charAt(0).toUpperCase() + nomeMes.slice(1);
         okMes = mesSel.includes(mesFormatado);
-      } else okMes = false;
+      } else {
+        okMes = false;
+      }
     }
 
     return okDistrito && okUnidade && okPrest && okCbo && okStatus && okMes;
@@ -688,21 +723,30 @@ function updateCharts() {
   const statusValues = statusLabels.map(label => statusCount[label]);
   createStatusChart('chartStatus', statusLabels, statusValues);
 
-  /* Evolução Temporal (por mês, Data Início da Pendência) */
+  /* Evolução Temporal (por mês, usando data apropriada) */
   const evoCount = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
 
-    const dataInicio = parseDate(getColumnValue(item, [
-      'Data Início da Pendência',
-      'Data Inicio da Pendencia',
-      'Data Início Pendência',
-      'Data Inicio Pendencia'
-    ]));
-    if (!dataInicio) return;
+    const canceladoInfo = getCanceladoPorVencimentoInfo(item);
+    
+    let dataParaGrafico = null;
+    
+    if (canceladoInfo.isCancelado) {
+      dataParaGrafico = canceladoInfo.dataVencimento;
+    } else {
+      dataParaGrafico = parseDate(getColumnValue(item, [
+        'Data Início da Pendência',
+        'Data Inicio da Pendencia',
+        'Data Início Pendência',
+        'Data Inicio Pendencia'
+      ]));
+    }
+    
+    if (!dataParaGrafico) return;
 
-    const y = dataInicio.getFullYear();
-    const m = String(dataInicio.getMonth() + 1).padStart(2, '0');
+    const y = dataParaGrafico.getFullYear();
+    const m = String(dataParaGrafico.getMonth() + 1).padStart(2, '0');
     const key = `${y}-${m}`;
     evoCount[key] = (evoCount[key] || 0) + 1;
   });
@@ -751,16 +795,26 @@ function updateCharts() {
   const mesCount = {};
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
-    const dataInicio = parseDate(getColumnValue(item, [
-      'Data Início da Pendência',
-      'Data Inicio da Pendencia',
-      'Data Início Pendência',
-      'Data Inicio Pendencia'
-    ]));
-    if (!dataInicio) return;
+    
+    const canceladoInfo = getCanceladoPorVencimentoInfo(item);
+    
+    let dataParaMes = null;
+    
+    if (canceladoInfo.isCancelado) {
+      dataParaMes = canceladoInfo.dataVencimento;
+    } else {
+      dataParaMes = parseDate(getColumnValue(item, [
+        'Data Início da Pendência',
+        'Data Inicio da Pendencia',
+        'Data Início Pendência',
+        'Data Inicio Pendencia'
+      ]));
+    }
+    
+    if (!dataParaMes) return;
 
-    const y = dataInicio.getFullYear();
-    const m = String(dataInicio.getMonth() + 1).padStart(2, '0');
+    const y = dataParaMes.getFullYear();
+    const m = String(dataParaMes.getMonth() + 1).padStart(2, '0');
     const key = `${y}-${m}`;
     mesCount[key] = (mesCount[key] || 0) + 1;
   });
