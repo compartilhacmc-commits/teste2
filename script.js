@@ -156,26 +156,27 @@ function hasUsuarioPreenchido(item) {
 }
 
 // ===================================
-// NOVA FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DO PRAZO DE 30 DIAS
+// NOVA FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
 // ===================================
-function isCanceladoVencimentoPrazo30(item) {
-  // Verifica se possui usuário preenchido
+function isCanceladoPorVencimentoPrazo(item) {
+  // Deve estar na aba RESOLVIDOS
+  if (item['_tipo'] !== 'RESOLVIDO') return false;
+  
+  // Deve ter usuário preenchido
   if (!hasUsuarioPreenchido(item)) return false;
-
-  // Busca a data de envio do email (prazo 30 dias) na planilha
+  
+  // Deve ter data preenchida na coluna "Data do envio do Email (Prazo: Pendência com 30 dias)"
   const dataEmail30 = getColumnValue(item, [
     'Data do envio do Email (Prazo: Pendência com 30 dias)',
     'Data do envio do Email (Prazo Pendência com 30 dias)',
-    'Data envio Email (Prazo: Pendência com 30 dias)',
-    'Data Envio Email Prazo 30 dias'
+    'Data envio Email 30 dias',
+    'Email 30 dias'
   ], '');
-
-  // Se a data estiver preenchida, considera como cancelado por vencimento
-  if (dataEmail30 && dataEmail30 !== '-' && dataEmail30.trim() !== '') {
-    return true;
-  }
-
-  return false;
+  
+  const dataEmail30Parsed = parseDate(dataEmail30);
+  
+  // Se a data está preenchida e é válida, considera como cancelado por vencimento
+  return dataEmail30Parsed !== null && !isNaN(dataEmail30Parsed.getTime());
 }
 
 // ===================================
@@ -586,7 +587,7 @@ function updateDashboard() {
 
 // ===================================
 // CARDS
-// ATUALIZADO: Card "Pendências com 30 dias" agora conta cancelados por vencimento do prazo
+// CARD "PENDÊNCIAS 30 DIAS" AGORA MOSTRA CANCELADAS POR VENCIMENTO DE PRAZO
 // ===================================
 function updateCards() {
   const totalComUsuario = allData.filter(item => hasUsuarioPreenchido(item)).length;
@@ -628,16 +629,14 @@ function updateCards() {
     }
   });
 
-  // NOVA LÓGICA: Conta CANCELADO/VENCIMENTO DO PRAZO DE 30 DIAS
-  // Conta todos os registros (filteredData) que possuem:
-  // 1. Usuário preenchido
-  // 2. Data do envio do Email (Prazo: Pendência com 30 dias) preenchida
-  const vencendo30 = filteredData.filter(item => isCanceladoVencimentoPrazo30(item)).length;
+  // *** NOVA LÓGICA PARA CARD "PENDÊNCIAS 30 DIAS" ***
+  // Contar canceladas por vencimento de prazo (30 dias)
+  const canceladasPorVencimento = filteredData.filter(item => isCanceladoPorVencimentoPrazo(item)).length;
 
   document.getElementById('totalPendencias').textContent = totalComUsuario;
   document.getElementById('totalPendenciasResponder').textContent = totalPendenciasResponder;
   document.getElementById('pendencias15').textContent = vencendo15;
-  document.getElementById('pendencias30').textContent = vencendo30;
+  document.getElementById('pendencias30').textContent = canceladasPorVencimento;
 
   const percentFiltrados = totalComUsuario > 0
     ? ((filtradoComUsuario / totalComUsuario) * 100).toFixed(1)
@@ -1595,14 +1594,6 @@ function downloadExcel() {
 
       const prazos = calcularPrazos(dataInicioPendencia);
 
-      // Busca a data de envio do email (prazo 30 dias) da planilha
-      const dataEmail30Planilha = getColumnValue(item, [
-        'Data do envio do Email (Prazo: Pendência com 30 dias)',
-        'Data do envio do Email (Prazo Pendência com 30 dias)',
-        'Data envio Email (Prazo: Pendência com 30 dias)',
-        'Data Envio Email Prazo 30 dias'
-      ], '');
-
       return {
         'Distrito': item['_distrito'] || '',
         'Tipo': item['_tipo'] || '',
@@ -1634,7 +1625,7 @@ function downloadExcel() {
         'Data Final do Prazo (Pendência com 15 dias)': prazos.prazo15,
         'Data do envio do Email (Prazo: Pendência com 15 dias)': prazos.email15,
         'Data Final do Prazo (Pendência com 30 dias)': prazos.prazo30,
-        'Data do envio do Email (Prazo: Pendência com 30 dias)': dataEmail30Planilha || prazos.email30,
+        'Data do envio do Email (Prazo: Pendência com 30 dias)': prazos.email30,
 
         'Status': item['Status'] || ''
       };
@@ -1663,14 +1654,6 @@ function updateDemandasTable() {
     ]);
 
     const prazos = calcularPrazos(dataInicioPendencia);
-
-    // Busca a data de envio do email (prazo 30 dias) da planilha
-    const dataEmail30Planilha = getColumnValue(item, [
-      'Data do envio do Email (Prazo: Pendência com 30 dias)',
-      'Data do envio do Email (Prazo Pendência com 30 dias)',
-      'Data envio Email (Prazo: Pendência com 30 dias)',
-      'Data Envio Email Prazo 30 dias'
-    ], '');
 
     return {
       _item: item,
@@ -1712,7 +1695,7 @@ function updateDemandasTable() {
       prazo15: prazos.prazo15,
       email15: prazos.email15,
       prazo30: prazos.prazo30,
-      email30: dataEmail30Planilha ? formatDate(dataEmail30Planilha) : prazos.email30,
+      email30: prazos.email30,
 
       status: getColumnValue(item, ['Status'], '-')
     };
