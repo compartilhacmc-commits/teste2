@@ -602,7 +602,7 @@ function updateDashboard() {
 }
 
 // ===================================
-// CARDS (CORRIGIDO PARA BATER COM O HTML DO teste2)
+// CARDS 
 // ===================================
 function updateCards() {
   // Base com "Usuário" preenchido (mantendo sua regra)
@@ -612,35 +612,34 @@ function updateCards() {
   // Total Geral (respeita definição do painel: registros com usuário)
   const totalPendenciasGeral = allComUsuario.length;
 
-  // Pendências a responder = apenas aba PENDENTE com usuário, respeitando filtros?
-  // No seu código anterior você usava "all" (não filtrado). Mantive a mesma lógica:
+  
   const totalPendenciasResponder = allData.filter(item =>
     item['_tipo'] === 'PENDENTE' && hasUsuarioPreenchido(item)
   ).length;
 
-  // Cancelados por vencimento do prazo (30 dias) — respeita filtros atuais
+  // Cancelados por vencimento do prazo (30 dias) 
   const totalCanceladosVencimento = filteredComUsuario.filter(item =>
     isCanceladoPorVencimentoPrazo(item)
   ).length;
 
-  // Resolvidas — respeita filtros atuais
+  // Resolvidas
   const totalResolvidas = filteredComUsuario.filter(item =>
     item['_tipo'] === 'RESOLVIDO'
   ).length;
 
-  // Agendadas — respeita filtros atuais (coluna Status)
+  // Agendadas 
   const totalAgendadas = filteredComUsuario.filter(item => {
     const status = getColumnValue(item, ['Status', 'STATUS', 'status'], '');
     return String(status).trim().toLowerCase() === 'agendado' || String(status).trim().toLowerCase() === 'agendada';
   }).length;
 
-  // Cancelados no geral — respeita filtros atuais (coluna Status)
+  // Cancelados
   const totalCanceladosGeral = filteredComUsuario.filter(item => {
     const status = getColumnValue(item, ['Status', 'STATUS', 'status'], '');
     return String(status).trim().toLowerCase() === 'cancelado' || String(status).trim().toLowerCase() === 'cancelada';
   }).length;
 
-  // Percentual filtrado (mantendo sua regra: só com usuário)
+  // Percentual filtrado 
   const percentFiltrados = totalPendenciasGeral > 0
     ? ((filteredComUsuario.length / totalPendenciasGeral) * 100).toFixed(1)
     : '100.0';
