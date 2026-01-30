@@ -61,20 +61,36 @@
       <div class="metric-card card-warning">
         <div class="card-icon"><i class="fas fa-clock"></i></div>
         <div class="card-info">
-          <h3 class="card-title">Vencendo com 15 Dias (Contando a partir da data Do Início da Pendência)</h3>
-          <p class="card-value" id="pendencias15">0</p>
+          <h3 class="card-title">Total Cancelados Por Vencimento do Prazo</h3>
+          <p class="card-value" id="totalCanceladosVencimento">0</p>
         </div>
       </div>
 
       <div class="metric-card card-danger">
-        <div class="card-icon"><i class="fas fa-exclamation-triangle"></i></div>
+        <div class="card-icon"><i class="fas fa-check-circle"></i></div>
         <div class="card-info">
-          <h3 class="card-title">Vencendo com 30 Dias (Contando a partir da data Do Início da Pendência)</h3>
-          <p class="card-value" id="pendencias30">0</p>
+          <h3 class="card-title">Total Resolvidas</h3>
+          <p class="card-value" id="totalResolvidas">0</p>
         </div>
       </div>
 
       <div class="metric-card card-info">
+        <div class="card-icon"><i class="fas fa-calendar-check"></i></div>
+        <div class="card-info">
+          <h3 class="card-title">Total Agendadas</h3>
+          <p class="card-value" id="totalAgendadas">0</p>
+        </div>
+      </div>
+
+      <div class="metric-card card-secondary">
+        <div class="card-icon"><i class="fas fa-ban"></i></div>
+        <div class="card-info">
+          <h3 class="card-title">Total Cancelados no Geral</h3>
+          <p class="card-value" id="totalCanceladosGeral">0</p>
+        </div>
+      </div>
+
+      <div class="metric-card card-percentage">
         <div class="card-icon"><i class="fas fa-percentage"></i></div>
         <div class="card-info">
           <h3 class="card-title">Porcentagem Filtrada</h3>
@@ -366,9 +382,3 @@
   <script src="script.js"></script>
 </body>
 </html>
-
-
-
-
-
-
