@@ -1479,7 +1479,7 @@ function createResolutividadePrestadorChart() {
 }
 
 // ===================================
-// GRÁFICO DE PIZZA
+// GRÁFICO DE ROSCA (DOUGHNUT) - ALTERADO
 // ===================================
 function createPieChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1501,7 +1501,7 @@ function createPieChart(canvasId, labels, data) {
   const total = data.reduce((acc, v) => acc + v, 0);
 
   chartPizzaStatus = new Chart(ctx, {
-    type: 'pie',
+    type: 'doughnut', // ← ALTERADO DE 'pie' PARA 'doughnut'
     data: {
       labels,
       datasets: [{
@@ -1561,7 +1561,7 @@ function createPieChart(canvasId, labels, data) {
       }
     },
     plugins: [{
-      id: 'pizzaInsideLabels',
+      id: 'doughnutInsideLabels',
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
@@ -1580,8 +1580,8 @@ function createPieChart(canvasId, labels, data) {
           const midAngle = (slice.startAngle + slice.endAngle) / 2;
           const radius = (slice.outerRadius + slice.innerRadius) / 2;
 
-          const x = slice.x + Math.cos(midAngle) * radius * 0.7;
-          const y = slice.y + Math.sin(midAngle) * radius * 0.7;
+          const x = slice.x + Math.cos(midAngle) * radius * 0.8;
+          const y = slice.y + Math.sin(midAngle) * radius * 0.8;
 
           ctx.fillStyle = '#ffffff';
           ctx.shadowColor = 'rgba(0,0,0,0.5)';
