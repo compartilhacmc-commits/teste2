@@ -148,23 +148,46 @@ let tableSearchQuery = '';
 let tableColumnFilters = {}; // (mantido, se usar depois)
 
 // ===================================
-// FUNÇÃO AUXILIAR PARA VERIFICAR SE USUÁRIO ESTÁ PREENCHIDO
+// FUNÇÕES AUXILIARES: USUÁRIO PREENCHIDO
 // ===================================
+
+// regra antiga (mantida para não quebrar lógica existente)
 function hasUsuarioPreenchido(item) {
   const usuario = getColumnValue(item, ['Usuário', 'Usuario', 'USUÁRIO', 'USUARIO']);
-  return usuario && usuario !== '-' && usuario.trim() !== '';
+  return usuario && usuario !== '-' && String(usuario).trim() !== '';
+}
+
+// NOVA regra (B): Nome do Usuário
+function hasNomeUsuarioPreenchido(item) {
+  const nomeUsuario = getColumnValue(item, [
+    'Nome do Usuário',
+    'Nome do Usuario',
+    'NOME DO USUÁRIO',
+    'NOME DO USUARIO',
+    'Nome Usuário',
+    'Nome Usuario'
+  ]);
+  return nomeUsuario && nomeUsuario !== '-' && String(nomeUsuario).trim() !== '';
+}
+
+// regra consolidada:
+// - RESOLVIDO => exige "Nome do Usuário" preenchido (B)
+// - PENDENTE  => mantém regra antiga (Usuário), para não mudar o resto do painel
+function hasUsuarioValidoPorTipo(item) {
+  if (item && item['_tipo'] === 'RESOLVIDO') return hasNomeUsuarioPreenchido(item);
+  return hasUsuarioPreenchido(item);
 }
 
 // ===================================
-// NOVA FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
+// VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
 // RETORNA OBJETO COM STATUS E DATA DE VENCIMENTO
 // ===================================
 function getCanceladoPorVencimentoInfo(item) {
   // Deve estar na aba RESOLVIDOS
   if (item['_tipo'] !== 'RESOLVIDO') return { isCancelado: false, dataVencimento: null };
 
-  // Deve ter usuário preenchido
-  if (!hasUsuarioPreenchido(item)) return { isCancelado: false, dataVencimento: null };
+  // Deve ter "Nome do Usuário" preenchido (B)
+  if (!hasNomeUsuarioPreenchido(item)) return { isCancelado: false, dataVencimento: null };
 
   // Deve ter data preenchida na coluna "Data do envio do Email (Prazo: Pendência com 30 dias)"
   const dataEmail30 = getColumnValue(item, [
@@ -485,6 +508,7 @@ function populateMonthFilter() {
   const mesesSet = new Set();
 
   allData.forEach(item => {
+    // mantém sua lógica de vencimento (resolvidos com nome usuario)
     const canceladoInfo = getCanceladoPorVencimentoInfo(item);
 
     let dataParaMes = null;
@@ -605,16 +629,15 @@ function updateDashboard() {
 // CARDS 
 // ===================================
 function updateCards() {
-  // Base com "Usuário" preenchido (mantendo sua regra)
-  const allComUsuario = allData.filter(item => hasUsuarioPreenchido(item));
-  const filteredComUsuario = filteredData.filter(item => hasUsuarioPreenchido(item));
+  // Base com regra consolidada (RESOLVIDO usa Nome do Usuário; PENDENTE usa Usuário)
+  const allComUsuario = allData.filter(item => hasUsuarioValidoPorTipo(item));
+  const filteredComUsuario = filteredData.filter(item => hasUsuarioValidoPorTipo(item));
 
-  // Total Geral (respeita definição do painel: registros com usuário)
+  // Total Geral (respeita definição do painel: registros com usuário válido por tipo)
   const totalPendenciasGeral = allComUsuario.length;
 
-  
   const totalPendenciasResponder = allData.filter(item =>
-    item['_tipo'] === 'PENDENTE' && hasUsuarioPreenchido(item)
+    item['_tipo'] === 'PENDENTE' && hasUsuarioValidoPorTipo(item)
   ).length;
 
   // Cancelados por vencimento do prazo (30 dias) 
@@ -622,7 +645,7 @@ function updateCards() {
     isCanceladoPorVencimentoPrazo(item)
   ).length;
 
-  // Resolvidas
+  // Resolvidas (RESOLVIDO + nome usuário)
   const totalResolvidas = filteredComUsuario.filter(item =>
     item['_tipo'] === 'RESOLVIDO'
   ).length;
@@ -644,7 +667,6 @@ function updateCards() {
     ? ((filteredComUsuario.length / totalPendenciasGeral) * 100).toFixed(1)
     : '100.0';
 
-  // Escrever nos IDs que EXISTEM no index.html do teste2
   document.getElementById('totalPendencias').textContent = totalPendenciasGeral;
   document.getElementById('totalPendenciasResponder').textContent = totalPendenciasResponder;
   document.getElementById('totalCanceladosVencimento').textContent = totalCanceladosVencimento;
@@ -658,20 +680,12 @@ function updateCards() {
 // ATUALIZAR GRÁFICOS
 // ===================================
 function updateCharts() {
-  const distritosCount = {};
-  filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
-    const distrito = item['_distrito'] || 'Não informado';
-    distritosCount[distrito] = (distritosCount[distrito] || 0) + 1;
-  });
-
-  const distritosLabels = Object.keys(distritosCount).sort((a, b) => distritosCount[b] - distritosCount[a]);
-  const distritosValues = distritosLabels.map(label => distritosCount[label]);
-  createDistritoChart('chartDistritos', distritosLabels, distritosValues);
-
+  // ===================================
+  // Pendências Não Resolvidas por Distrito (mantém regra: PENDENTE + usuário válido)
+  // ===================================
   const distritosCountPendentes = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
     if (item['_tipo'] !== 'PENDENTE') return;
     const distrito = item['_distrito'] || 'Não informado';
     distritosCountPendentes[distrito] = (distritosCountPendentes[distrito] || 0) + 1;
@@ -681,11 +695,28 @@ function updateCharts() {
   const distritosValuesPendentes = distritosLabelsPendentes.map(label => distritosCountPendentes[label]);
   createDistritoPendenteChart('chartDistritosPendentes', distritosLabelsPendentes, distritosValuesPendentes);
 
+  // ===================================
+  // RESOLVIDOS por distrito, somente com "Nome do Usuário" preenchido
+  // ===================================
+  const distritosCountResolvidos = {};
+  filteredData.forEach(item => {
+    if (item['_tipo'] !== 'RESOLVIDO') return;
+    if (!hasNomeUsuarioPreenchido(item)) return; // <-- regra B
+    const distrito = item['_distrito'] || 'Não informado';
+    distritosCountResolvidos[distrito] = (distritosCountResolvidos[distrito] || 0) + 1;
+  });
+
+  const distritosLabelsResolvidos = Object.keys(distritosCountResolvidos).sort((a, b) => distritosCountResolvidos[b] - distritosCountResolvidos[a]);
+  const distritosValuesResolvidos = distritosLabelsResolvidos.map(label => distritosCountResolvidos[label]);
+  createDistritoChart('chartDistritos', distritosLabelsResolvidos, distritosValuesResolvidos);
+
+  // Resolutividade por Distrito (mantém regra consolidada)
   createResolutividadeDistritoChart();
 
+  // Status
   const statusCount = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
     const status = getColumnValue(item, ['Status', 'STATUS', 'status'], 'Não informado');
     statusCount[status] = (statusCount[status] || 0) + 1;
   });
@@ -694,9 +725,10 @@ function updateCharts() {
   const statusValues = statusLabels.map(label => statusCount[label]);
   createStatusChart('chartStatus', statusLabels, statusValues);
 
+  // Evolução temporal
   const evoCount = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
 
     const canceladoInfo = getCanceladoPorVencimentoInfo(item);
 
@@ -731,9 +763,10 @@ function updateCharts() {
 
   createEvolucaoTemporalChart('chartEvolucaoTemporal', evoLabels, evoValues);
 
+  // Prestadores - total
   const prestadoresCount = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
     const prestador = item['Prestador'] || 'Não informado';
     prestadoresCount[prestador] = (prestadoresCount[prestador] || 0) + 1;
   });
@@ -742,9 +775,10 @@ function updateCharts() {
   const prestadoresValues = prestadoresLabels.map(label => prestadoresCount[label]);
   createPrestadorChart('chartPrestadores', prestadoresLabels, prestadoresValues);
 
+  // Prestadores - pendentes
   const prestadoresCountPendentes = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
     if (item['_tipo'] !== 'PENDENTE') return;
     const prestador = item['Prestador'] || 'Não informado';
     prestadoresCountPendentes[prestador] = (prestadoresCountPendentes[prestador] || 0) + 1;
@@ -754,13 +788,16 @@ function updateCharts() {
   const prestadoresValuesPendentes = prestadoresLabelsPendentes.map(label => prestadoresCountPendentes[label]);
   createPrestadorPendenteChart('chartPrestadoresPendentes', prestadoresLabelsPendentes, prestadoresValuesPendentes);
 
+  // Resolutividade por Prestador
   createResolutividadePrestadorChart();
 
+  // Rosca Status (modelagem do print: rótulo interno + total central)
   createPieChart('chartPizzaStatus', statusLabels, statusValues);
 
+  // Pendências por mês
   const mesCount = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
 
     const canceladoInfo = getCanceladoPorVencimentoInfo(item);
 
@@ -1097,7 +1134,7 @@ function createResolutividadeDistritoChart() {
 
   const distritosStats = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
 
     const distrito = item['_distrito'] || 'Não informado';
     if (!distritosStats[distrito]) distritosStats[distrito] = { total: 0, resolvidos: 0 };
@@ -1401,7 +1438,7 @@ function createResolutividadePrestadorChart() {
 
   const prestadorStats = {};
   filteredData.forEach(item => {
-    if (!hasUsuarioPreenchido(item)) return;
+    if (!hasUsuarioValidoPorTipo(item)) return;
 
     const prestador = item['Prestador'] || 'Não informado';
     if (!prestadorStats[prestador]) prestadorStats[prestador] = { total: 0, resolvidos: 0 };
@@ -1479,7 +1516,10 @@ function createResolutividadePrestadorChart() {
 }
 
 // ===================================
-// GRÁFICO DE ROSCA (DOUGHNUT) - ALTERADO
+// GRÁFICO DE ROSCA (DOUGHNUT)
+// - rótulo interno: Status + %
+// - legenda à direita mantida
+// - texto central: "Total Geral" + total
 // ===================================
 function createPieChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1501,19 +1541,21 @@ function createPieChart(canvasId, labels, data) {
   const total = data.reduce((acc, v) => acc + v, 0);
 
   chartPizzaStatus = new Chart(ctx, {
-    type: 'doughnut', // ← ALTERADO DE 'pie' PARA 'doughnut'
+    type: 'doughnut',
     data: {
       labels,
       datasets: [{
         data,
         backgroundColor: colors,
         borderWidth: 3,
-        borderColor: '#ffffff'
+        borderColor: '#ffffff',
+        hoverOffset: 6
       }]
     },
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      cutout: '62%', // espessura do anel (modelo do print)
       plugins: {
         legend: {
           position: 'right',
@@ -1521,25 +1563,9 @@ function createPieChart(canvasId, labels, data) {
             font: { size: 14, weight: 'bold' },
             color: '#111827',
             padding: 18,
-            boxWidth: 22,
+            boxWidth: 18,
             usePointStyle: true,
-            pointStyle: 'circle',
-            generateLabels: function(chart) {
-              const data = chart.data;
-              if (data.labels.length && data.datasets.length) {
-                return data.labels.map((label, i) => {
-                  const value = data.datasets[0].data[i];
-                  const percent = ((value / total) * 100).toFixed(1);
-                  return {
-                    text: `${label} (${percent}%)`,
-                    fillStyle: data.datasets[0].backgroundColor[i],
-                    hidden: false,
-                    index: i
-                  };
-                });
-              }
-              return [];
-            }
+            pointStyle: 'circle'
           }
         },
         tooltip: {
@@ -1553,48 +1579,84 @@ function createPieChart(canvasId, labels, data) {
             label: function(context) {
               const label = context.label || '';
               const value = context.parsed || 0;
-              const percent = ((value / total) * 100).toFixed(1);
+              const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
               return `${label}: ${value} (${percent}%)`;
             }
           }
         }
       }
     },
-    plugins: [{
-      id: 'doughnutInsideLabels',
-      afterDatasetsDraw(chart) {
-        const { ctx } = chart;
-        const meta = chart.getDatasetMeta(0);
-        const dataset = chart.data.datasets[0];
-        if (!meta || !meta.data) return;
+    plugins: [
+      // Rótulos dentro das fatias: "Status + %"
+      {
+        id: 'doughnutInsideLabels_StatusPercent',
+        afterDatasetsDraw(chart) {
+          const { ctx } = chart;
+          const meta = chart.getDatasetMeta(0);
+          const dataset = chart.data.datasets[0];
+          if (!meta || !meta.data) return;
 
-        ctx.save();
-        ctx.font = 'bold 14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
 
-        meta.data.forEach((slice, i) => {
-          const value = dataset.data[i];
-          const percent = ((value / total) * 100).toFixed(1);
+          meta.data.forEach((slice, i) => {
+            const value = dataset.data[i];
+            if (!value) return;
 
-          const midAngle = (slice.startAngle + slice.endAngle) / 2;
-          const radius = (slice.outerRadius + slice.innerRadius) / 2;
+            const label = chart.data.labels[i] ?? '';
+            const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
 
-          const x = slice.x + Math.cos(midAngle) * radius * 0.8;
-          const y = slice.y + Math.sin(midAngle) * radius * 0.8;
+            const midAngle = (slice.startAngle + slice.endAngle) / 2;
+            const radius = (slice.outerRadius + slice.innerRadius) / 2;
 
-          ctx.fillStyle = '#ffffff';
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = 4;
-          ctx.shadowOffsetX = 1;
-          ctx.shadowOffsetY = 1;
+            const x = slice.x + Math.cos(midAngle) * radius * 0.92;
+            const y = slice.y + Math.sin(midAngle) * radius * 0.92;
 
-          ctx.fillText(`${percent}%`, x, y);
-        });
+            // se fatia pequena, evita poluir
+            if ((slice.endAngle - slice.startAngle) < 0.25) return;
 
-        ctx.restore();
+            ctx.fillStyle = '#ffffff';
+            ctx.shadowColor = 'rgba(0,0,0,0.35)';
+            ctx.shadowBlur = 3;
+            ctx.shadowOffsetX = 1;
+            ctx.shadowOffsetY = 1;
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(`${label}`, x, y - 7);
+
+            ctx.font = 'bold 12px Arial';
+            ctx.fillText(`${percent}%`, x, y + 8);
+          });
+
+          ctx.restore();
+        }
+      },
+      // Texto central: "Total Geral" + total (modelo do print)
+      {
+        id: 'doughnutCenterText_TotalGeral',
+        afterDraw(chart) {
+          const { ctx } = chart;
+          const { width, height } = chart;
+
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          const centerX = width / 2;
+          const centerY = height / 2;
+
+          ctx.fillStyle = '#111827';
+          ctx.font = '700 13px Arial';
+          ctx.fillText('Total Geral', centerX, centerY - 10);
+
+          ctx.font = '800 16px Arial';
+          ctx.fillText(String(total), centerX, centerY + 12);
+
+          ctx.restore();
+        }
       }
-    }]
+    ]
   });
 }
 
@@ -1603,7 +1665,7 @@ function createPieChart(canvasId, labels, data) {
 // ===================================
 function downloadExcel() {
   const dataToExport = filteredData
-    .filter(item => hasUsuarioPreenchido(item))
+    .filter(item => hasUsuarioValidoPorTipo(item))
     .map(item => {
       const dataInicioPendencia = getColumnValue(item, [
         'Data Início da Pendência',
@@ -1663,7 +1725,7 @@ function downloadExcel() {
 // TABELA
 // ===================================
 function updateDemandasTable() {
-  const baseItems = filteredData.filter(item => hasUsuarioPreenchido(item));
+  const baseItems = filteredData.filter(item => hasUsuarioValidoPorTipo(item));
 
   let rows = baseItems.map(item => {
     const dataInicioPendencia = getColumnValue(item, [
@@ -1865,7 +1927,7 @@ function tablePrevPage() {
 }
 
 function tableNextPage() {
-  const rows = filteredData.filter(item => hasUsuarioPreenchido(item));
+  const rows = filteredData.filter(item => hasUsuarioValidoPorTipo(item));
   const totalPages = Math.ceil(rows.length / TABLE_PAGE_SIZE);
   if (tableCurrentPage < totalPages) {
     tableCurrentPage++;
