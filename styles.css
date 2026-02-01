@@ -46,7 +46,7 @@ body {
   box-shadow: var(--sombra-lg);
 }
 
-.header-content { max-width: 1400px; margin: 0 auto; }
+.header-content { max-width: 1600px; margin: 0 auto; }
 
 .header-title {
   font-size: 2.5rem;
@@ -71,9 +71,13 @@ body {
 }
 
 /* ===================================
-   CONTAINER PRINCIPAL
+   CONTAINER PRINCIPAL - AUMENTADO PARA TELA CHEIA
 =================================== */
-.container { max-width: 1400px; margin: 2rem auto; padding: 0 2rem; }
+.container { 
+  max-width: 1600px; 
+  margin: 2rem auto; 
+  padding: 0 2rem; 
+}
 
 /* ===================================
    BARRA DE AÇÕES
@@ -225,11 +229,11 @@ PAINÉIS DISTRITO
 }
 
 /* ===================================
-CARDS DE MÉTRICAS (AJUSTADO: 5 LADO A LADO + MENOR)
+CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
 =================================== */
 .cards-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(180px, 1fr));
+  grid-template-columns: repeat(7, 1fr);
   gap: 1rem;
   margin-bottom: 2rem;
 }
@@ -273,6 +277,12 @@ CARDS DE MÉTRICAS (AJUSTADO: 5 LADO A LADO + MENOR)
 .card-info { color: var(--roxo); }
 .card-info::before { background: var(--roxo); }
 
+.card-secondary { color: #6b7280; }
+.card-secondary::before { background: #6b7280; }
+
+.card-percentage { color: #f97316; }
+.card-percentage::before { background: #f97316; }
+
 .card-icon {
   width: 44px; height: 44px;
   display: flex;
@@ -295,7 +305,6 @@ CARDS DE MÉTRICAS (AJUSTADO: 5 LADO A LADO + MENOR)
   letter-spacing: 0.4px;
 }
 
-/* VALOR DO CARD CENTRALIZADO */
 .card-value {
   font-size: 1.6rem;
   font-weight: 800;
@@ -703,10 +712,14 @@ CARDS DE MÉTRICAS (AJUSTADO: 5 LADO A LADO + MENOR)
 /* ===================================
    RESPONSIVIDADE
 =================================== */
+@media (max-width: 1400px) {
+  .cards-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
 @media (max-width: 1200px) {
   .charts-container { grid-template-columns: 1fr; }
   .charts-container-resolutividade { grid-template-columns: 1fr; }
-  .cards-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+  .cards-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -735,4 +748,3 @@ CARDS DE MÉTRICAS (AJUSTADO: 5 LADO A LADO + MENOR)
 
 .metric-card, .filters-container, .chart-box, .chart-box-full { animation: fadeInUp 0.6s ease-out; }
 html { scroll-behavior: smooth; }
-
