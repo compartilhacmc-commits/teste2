@@ -156,7 +156,7 @@ function hasUsuarioPreenchido(item) {
 }
 
 // ===================================
-// NOVA FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
+// FUNÇÃO: VERIFICAR SE É CANCELADO POR VENCIMENTO DE PRAZO (30 DIAS)
 // RETORNA OBJETO COM STATUS E DATA DE VENCIMENTO
 // ===================================
 function getCanceladoPorVencimentoInfo(item) {
@@ -670,8 +670,6 @@ function updateCharts() {
   // -------------------------------
   // 2) Registros de Pendências Resolvidas por Distrito
   //    Regra: SOMENTE RESOLVIDOS com USUÁRIO preenchido.
-  //    Estilo: igual ao pendentes, porém barras LILÁS ESCURO.
-  //    CORREÇÃO: desenha no canvas EXISTENTE "chartDistritos"
   // -------------------------------
   const distritosCountResolvidas = {};
   filteredData.forEach(item => {
@@ -688,12 +686,12 @@ function updateCharts() {
   createDistritoResolvidasChart('chartDistritos', distritosLabelsResolvidas, distritosValuesResolvidas);
 
   // -------------------------------
-  // Resolutividade (mantido)
+  // Resolutividade
   // -------------------------------
   createResolutividadeDistritoChart();
 
   // -------------------------------
-  // Status (mantido)
+  // Status
   // -------------------------------
   const statusCount = {};
   filteredData.forEach(item => {
@@ -707,7 +705,7 @@ function updateCharts() {
   createStatusChart('chartStatus', statusLabels, statusValues);
 
   // -------------------------------
-  // Evolução temporal (mantido)
+  // Evolução temporal
   // -------------------------------
   const evoCount = {};
   filteredData.forEach(item => {
@@ -744,7 +742,7 @@ function updateCharts() {
   createEvolucaoTemporalChart('chartEvolucaoTemporal', evoLabels, evoValues);
 
   // -------------------------------
-  // Prestadores (mantido)
+  // Prestadores
   // -------------------------------
   const prestadoresCount = {};
   filteredData.forEach(item => {
@@ -775,7 +773,7 @@ function updateCharts() {
   createPieChart('chartPizzaStatus', statusLabels, statusValues);
 
   // -------------------------------
-  // Pendências por mês (mantido)
+  // Pendências por mês
   // -------------------------------
   const mesCount = {};
   filteredData.forEach(item => {
@@ -1037,8 +1035,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 }
 
 // ===================================
-// GRÁFICO: Registros de Pendências Resolvidas por Distrito (LILÁS ESCURO)
-// Mesmo estilo do "Pendentes por Distrito"
+// GRÁFICO: Registros de Pendências Resolvidas por Distrito
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
