@@ -129,10 +129,12 @@ let allData = [];
 let filteredData = [];
 
 let chartDistritosPendentes = null;
-let chartDistritosResolvidas = null; // agora desenha no canvas chartDistritos
+let chartDistritosResolvidas = null;
 let chartStatus = null;
 let chartPrestadores = null;
 let chartPrestadoresPendentes = null;
+let chartEspecialidades = null; // ✅ NOVO
+let chartEspecialidadesPendentes = null; // ✅ NOVO
 let chartPizzaStatus = null;
 let chartResolutividadeDistrito = null;
 let chartResolutividadePrestador = null;
@@ -774,6 +776,36 @@ function updateCharts() {
   createEvolucaoTemporalChart('chartEvolucaoTemporal', evoLabels, evoValues);
 
   // -------------------------------
+  // ✅ ESPECIALIDADES
+  // -------------------------------
+  const especialidadesCount = {};
+  filteredData.forEach(item => {
+    if (!hasUsuarioPreenchido(item)) return;
+    const especialidade = getColumnValue(item, ['Cbo Especialidade', 'CBO Especialidade', 'CBO', 'Especialidade', 'Especialidade CBO']);
+    if (especialidade && especialidade !== '-') {
+      especialidadesCount[especialidade] = (especialidadesCount[especialidade] || 0) + 1;
+    }
+  });
+
+  const especialidadesLabels = Object.keys(especialidadesCount).sort((a, b) => especialidadesCount[b] - especialidadesCount[a]).slice(0, 50);
+  const especialidadesValues = especialidadesLabels.map(label => especialidadesCount[label]);
+  createEspecialidadeChart('chartEspecialidades', especialidadesLabels, especialidadesValues);
+
+  const especialidadesCountPendentes = {};
+  filteredData.forEach(item => {
+    if (!hasUsuarioPreenchido(item)) return;
+    if (item['_tipo'] !== 'PENDENTE') return;
+    const especialidade = getColumnValue(item, ['Cbo Especialidade', 'CBO Especialidade', 'CBO', 'Especialidade', 'Especialidade CBO']);
+    if (especialidade && especialidade !== '-') {
+      especialidadesCountPendentes[especialidade] = (especialidadesCountPendentes[especialidade] || 0) + 1;
+    }
+  });
+
+  const especialidadesLabelsPendentes = Object.keys(especialidadesCountPendentes).sort((a, b) => especialidadesCountPendentes[b] - especialidadesCountPendentes[a]).slice(0, 50);
+  const especialidadesValuesPendentes = especialidadesLabelsPendentes.map(label => especialidadesCountPendentes[label]);
+  createEspecialidadePendenteChart('chartEspecialidadesPendentes', especialidadesLabelsPendentes, especialidadesValuesPendentes);
+
+  // -------------------------------
   // Prestadores
   // -------------------------------
   const prestadoresCount = {};
@@ -1068,7 +1100,6 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 
 // ===================================
 // GRÁFICO: Registros de Pendências Resolvidas por Distrito
-// ✅ ALTERAÇÃO 1: COR VERDE ESCURO
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1083,7 +1114,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#166534', // ✅ VERDE ESCURO
+        backgroundColor: '#166534',
         borderWidth: 0,
         borderRadius: 8,
         barPercentage: 0.65,
@@ -1101,7 +1132,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         x: {
           ticks: {
             font: { size: 13, weight: 'bold' },
-            color: '#166534', // ✅ VERDE ESCURO
+            color: '#166534',
             maxRotation: 45,
             minRotation: 0
           },
@@ -1295,6 +1326,154 @@ function createStatusChart(canvasId, labels, data) {
           const xPos = bar.x;
           const yPos = bar.y + (bar.height / 2);
           ctx.fillText(text, xPos, yPos);
+        });
+
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// ===================================
+// ✅ NOVO GRÁFICO: Registros Geral de Pendências por Especialidade
+// ===================================
+function createEspecialidadeChart(canvasId, labels, data) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (chartEspecialidades) chartEspecialidades.destroy();
+
+  chartEspecialidades = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '',
+        data,
+        backgroundColor: '#1e3a8a', // ✅ AZUL ESCURO
+        borderWidth: 0,
+        borderRadius: 6,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            font: { size: 13, weight: 'bold' },
+            color: '#1e3a8a' // ✅ AZUL ESCURO
+          },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      id: 'especialidadeInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x - 8;
+          ctx.fillText(text, xPos, bar.y);
+        });
+
+        ctx.restore();
+      }
+    }]
+  });
+}
+
+// ===================================
+// ✅ NOVO GRÁFICO: Pendências Não Resolvidas por Especialidade
+// ===================================
+function createEspecialidadePendenteChart(canvasId, labels, data) {
+  const ctx = document.getElementById(canvasId);
+  if (!ctx) return;
+  if (chartEspecialidadesPendentes) chartEspecialidadesPendentes.destroy();
+
+  chartEspecialidadesPendentes = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '',
+        data,
+        backgroundColor: '#991b1b', // ✅ VERMELHO ESCURO
+        borderWidth: 0,
+        borderRadius: 6,
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { enabled: false }
+      },
+      scales: {
+        x: {
+          beginAtZero: true,
+          ticks: { display: false },
+          grid: { display: false },
+          border: { display: false }
+        },
+        y: {
+          ticks: {
+            font: { size: 13, weight: 'bold' },
+            color: '#991b1b' // ✅ VERMELHO ESCURO
+          },
+          grid: { display: false },
+          border: { display: false }
+        }
+      }
+    },
+    plugins: [{
+      id: 'especialidadePendenteInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'right';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const xPos = bar.x - 8;
+          ctx.fillText(text, xPos, bar.y);
         });
 
         ctx.restore();
