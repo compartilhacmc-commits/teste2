@@ -128,9 +128,8 @@ const SHEETS = [
 let allData = [];
 let filteredData = [];
 
-let chartDistritos = null;                 // (mantido, mas não será mais usado)
 let chartDistritosPendentes = null;
-let chartDistritosResolvidas = null;       // NOVO: Resolvidas por distrito (lilas escuro)
+let chartDistritosResolvidas = null; // agora desenha no canvas chartDistritos
 let chartStatus = null;
 let chartPrestadores = null;
 let chartPrestadoresPendentes = null;
@@ -152,8 +151,8 @@ let tableColumnFilters = {}; // (mantido, se usar depois)
 // FUNÇÃO AUXILIAR PARA VERIFICAR SE USUÁRIO ESTÁ PREENCHIDO
 // ===================================
 function hasUsuarioPreenchido(item) {
-  const usuario = getColumnValue(item, ['Usuário', 'Usuario', 'USUÁRIO', 'USUARIO']);
-  return usuario && usuario !== '-' && usuario.trim() !== '';
+  const usuario = getColumnValue(item, ['Usuário', 'Usuario', 'USUÁRIO', 'USUARIO'], '');
+  return usuario && usuario !== '-' && String(usuario).trim() !== '';
 }
 
 // ===================================
@@ -652,14 +651,7 @@ function updateCards() {
 // ===================================
 function updateCharts() {
   // -------------------------------
-  // 1) (RETIRADO) Registros Geral de Pendências por Distrito
-  //    - Você pediu para retirar do painel.
-  //    - Então NÃO criamos mais o gráfico chartDistritos.
-  //    - Se existir canvas no HTML, ele ficará vazio.
-  // -------------------------------
-
-  // -------------------------------
-  // 2) Pendências Não Resolvidas por Distrito (mantido)
+  // 1) Pendências Não Resolvidas por Distrito (mantido)
   // -------------------------------
   const distritosCountPendentes = {};
   filteredData.forEach(item => {
@@ -669,14 +661,17 @@ function updateCharts() {
     distritosCountPendentes[distrito] = (distritosCountPendentes[distrito] || 0) + 1;
   });
 
-  const distritosLabelsPendentes = Object.keys(distritosCountPendentes).sort((a, b) => distritosCountPendentes[b] - distritosCountPendentes[a]);
+  const distritosLabelsPendentes = Object.keys(distritosCountPendentes)
+    .sort((a, b) => distritosCountPendentes[b] - distritosCountPendentes[a]);
+
   const distritosValuesPendentes = distritosLabelsPendentes.map(label => distritosCountPendentes[label]);
   createDistritoPendenteChart('chartDistritosPendentes', distritosLabelsPendentes, distritosValuesPendentes);
 
   // -------------------------------
-  // 3) NOVO: Registro Geral de Pendências Resolvidas por Distrito
-  //    Regra: SOMENTE dados da aba RESOLVIDOS com coluna USUÁRIO preenchida.
+  // 2) Registros de Pendências Resolvidas por Distrito
+  //    Regra: SOMENTE RESOLVIDOS com USUÁRIO preenchido.
   //    Estilo: igual ao pendentes, porém barras LILÁS ESCURO.
+  //    CORREÇÃO: desenha no canvas EXISTENTE "chartDistritos"
   // -------------------------------
   const distritosCountResolvidas = {};
   filteredData.forEach(item => {
@@ -686,9 +681,11 @@ function updateCharts() {
     distritosCountResolvidas[distrito] = (distritosCountResolvidas[distrito] || 0) + 1;
   });
 
-  const distritosLabelsResolvidas = Object.keys(distritosCountResolvidas).sort((a, b) => distritosCountResolvidas[b] - distritosCountResolvidas[a]);
+  const distritosLabelsResolvidas = Object.keys(distritosCountResolvidas)
+    .sort((a, b) => distritosCountResolvidas[b] - distritosCountResolvidas[a]);
+
   const distritosValuesResolvidas = distritosLabelsResolvidas.map(label => distritosCountResolvidas[label]);
-  createDistritoResolvidasChart('chartDistritosResolvidas', distritosLabelsResolvidas, distritosValuesResolvidas);
+  createDistritoResolvidasChart('chartDistritos', distritosLabelsResolvidas, distritosValuesResolvidas);
 
   // -------------------------------
   // Resolutividade (mantido)
@@ -774,7 +771,7 @@ function updateCharts() {
 
   createResolutividadePrestadorChart();
 
-  // Rosca (mantido, com correção dos rótulos centralizados)
+  // Rosca (mantido)
   createPieChart('chartPizzaStatus', statusLabels, statusValues);
 
   // -------------------------------
@@ -965,12 +962,6 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
 }
 
 // ===================================
-// (RETIRADO) GRÁFICO: Registros Geral de Pendências por Distrito
-// ===================================
-// function createDistritoChart(...) { ... }
-// -> removido do fluxo: você pediu para retirar do painel.
-
-// ===================================
 // GRÁFICO: Pendências Não Resolvidas por Distrito
 // ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
@@ -1046,7 +1037,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 }
 
 // ===================================
-// NOVO GRÁFICO: Registros de Pendências Resolvidas por Distrito (LILÁS ESCURO)
+// GRÁFICO: Registros de Pendências Resolvidas por Distrito (LILÁS ESCURO)
 // Mesmo estilo do "Pendentes por Distrito"
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
@@ -1062,7 +1053,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#6d28d9', // LILÁS ESCURO (roxo mais fechado)
+        backgroundColor: '#6d28d9', // LILÁS ESCURO
         borderWidth: 0,
         borderRadius: 8,
         barPercentage: 0.65,
@@ -1514,7 +1505,7 @@ function createResolutividadePrestadorChart() {
 }
 
 // ===================================
-// GRÁFICO DE ROSCA (DOUGHNUT) - CORREÇÃO CENTRALIZAÇÃO RÓTULOS
+// GRÁFICO DE ROSCA (DOUGHNUT)
 // ===================================
 function createPieChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1594,7 +1585,6 @@ function createPieChart(canvasId, labels, data) {
           }
         }
       },
-      // garante um "furo" consistente (ajuda no cálculo do raio médio)
       cutout: '62%'
     },
     plugins: [{
@@ -1616,7 +1606,6 @@ function createPieChart(canvasId, labels, data) {
 
           const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0.0';
 
-          // Chart.js ArcElement possui getCenterPoint() -> centro geométrico do arco
           if (typeof arc.getCenterPoint === 'function') {
             const p = arc.getCenterPoint();
             ctx.fillStyle = '#ffffff';
@@ -1628,7 +1617,6 @@ function createPieChart(canvasId, labels, data) {
             return;
           }
 
-          // fallback (caso raro): cálculo manual
           const midAngle = (arc.startAngle + arc.endAngle) / 2;
           const radius = (arc.outerRadius + arc.innerRadius) / 2;
           const x = arc.x + Math.cos(midAngle) * radius;
