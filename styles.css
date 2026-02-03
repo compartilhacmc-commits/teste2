@@ -1,6 +1,6 @@
 /* =========================================================
    RESET E VARIÁVEIS GLOBAIS
-=================================== */
+========================================================= */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 :root {
@@ -73,10 +73,10 @@ body {
 /* ===================================
    CONTAINER PRINCIPAL - AUMENTADO PARA TELA CHEIA
 =================================== */
-.container { 
-  max-width: 1600px; 
-  margin: 2rem auto; 
-  padding: 0 2rem; 
+.container {
+  max-width: 1600px;
+  margin: 2rem auto;
+  padding: 0 2rem;
 }
 
 /* ===================================
@@ -133,113 +133,6 @@ body {
 .btn-refresh { background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%); color: var(--branco); }
 .btn-excel { background: linear-gradient(135deg, #10b981 0%, #34d399 100%); color: var(--branco); }
 .btn-clear { background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); color: var(--branco); margin-top: 1rem; }
-
-/* ===================================
-PAINÉIS DISTRITO
-=================================== */
-.paineis-distrito-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.75rem;
-  overflow: visible;         /* remove scroll */
-  padding-bottom: 0;         /* não precisa espaço p/ scrollbar */
-}
-
-
-/* ALTERADO: todos em 1 linha só (com rolagem horizontal quando precisar) */
-.paineis-distrito-grid {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(190px, 1fr);
-  gap: 0.75rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* barra de rolagem discreta */
-.paineis-distrito-grid::-webkit-scrollbar { height: 8px; }
-.paineis-distrito-grid::-webkit-scrollbar-track { background: transparent; }
-.paineis-distrito-grid::-webkit-scrollbar-thumb { background: rgba(30,58,138,0.25); border-radius: 10px; }
-.paineis-distrito-grid::-webkit-scrollbar-thumb:hover { background: rgba(30,58,138,0.35); }
-
-.painel-card {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.9rem;
-  border-radius: 10px;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: var(--sombra-sm);
-  position: relative;
-  overflow: hidden;
-  height: 60px;
-  min-width: 0;
-
-}
-
-.painel-card::before {
-  content: '';
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 5px;
-  background: currentColor;
-}
-
-.painel-card:hover { transform: translateY(-4px) translateX(4px); box-shadow: var(--sombra-lg); }
-.painel-card:hover .painel-arrow { transform: translateX(5px); }
-
-.painel-sede { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e3a8a; }
-
-.painel-icon {
-  width: 36px; 
-  height: 36px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: currentColor;
-  color: var(--branco);
-  border-radius: 8px;
-  font-size: 1.05rem;
-  opacity: 0.95;
-  flex-shrink: 0;
-}
-
-.painel-info { 
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-width: 0;
-}
-
-.painel-info h4 { 
-  font-size: 0.95rem; 
-  font-weight: 800; 
-  margin-bottom: 0.15rem; 
-  color: inherit;
-  line-height: 1.2;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.painel-info p { 
-  font-size: 0.75rem; 
-  font-weight: 600; 
-  opacity: 0.85; 
-  color: inherit;
-  line-height: 1.2;
-}
-
-.painel-arrow {
-  font-size: 1rem;
-  color: inherit;
-  transition: transform 0.3s ease;
-  opacity: 0.7;
-  flex-shrink: 0;
-}
 
 /* ===================================
 CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
@@ -309,6 +202,11 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   flex-shrink: 0;
 }
 
+.card-info {
+  flex: 1;
+  text-align: center; /* CENTRALIZA o bloco (título + valor) */
+}
+
 .card-info h3 {
   font-size: 0.82rem;
   font-weight: 700;
@@ -323,7 +221,116 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   font-weight: 800;
   color: var(--cinza-800);
   line-height: 1;
-  text-align: center;
+  text-align: center; /* garante centralização do número */
+}
+
+/* ===================================
+   TÍTULOS DE SEÇÃO (usado em Filtros e Painéis)
+=================================== */
+.section-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--azul-escuro);
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ===================================
+   PAINÉIS DISTRITO (CAIXA BRANCA + GRID 4 POR LINHA)
+=================================== */
+.paineis-distrito-section{
+  background: var(--branco);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: var(--sombra-md);
+  margin-bottom: 2rem;
+}
+
+.paineis-distrito-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  overflow: visible;
+  padding-bottom: 0;
+}
+
+.painel-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.9rem;
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  box-shadow: var(--sombra-sm);
+  position: relative;
+  overflow: hidden;
+  height: 60px;
+  min-width: 0;
+}
+
+.painel-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 5px;
+  background: currentColor;
+}
+
+.painel-card:hover { transform: translateY(-4px) translateX(4px); box-shadow: var(--sombra-lg); }
+.painel-card:hover .painel-arrow { transform: translateX(5px); }
+
+.painel-sede { background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%); color: #1e3a8a; }
+
+.painel-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: currentColor;
+  color: var(--branco);
+  border-radius: 8px;
+  font-size: 1.05rem;
+  opacity: 0.95;
+  flex-shrink: 0;
+}
+
+.painel-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.painel-info h4 {
+  font-size: 0.95rem;
+  font-weight: 800;
+  margin-bottom: 0.15rem;
+  color: inherit;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.painel-info p {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.85;
+  color: inherit;
+  line-height: 1.2;
+}
+
+.painel-arrow {
+  font-size: 1rem;
+  color: inherit;
+  transition: transform 0.3s ease;
+  opacity: 0.7;
+  flex-shrink: 0;
 }
 
 /* ===================================
@@ -335,16 +342,6 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   padding: 1.5rem;
   box-shadow: var(--sombra-md);
   margin-bottom: 2rem;
-}
-
-.section-title {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--azul-escuro);
-  margin-bottom: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
 }
 
 .filters-grid {
@@ -733,6 +730,8 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   .charts-container { grid-template-columns: 1fr; }
   .charts-container-resolutividade { grid-template-columns: 1fr; }
   .cards-grid { grid-template-columns: repeat(3, 1fr); }
+
+  .paineis-distrito-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 768px) {
@@ -751,8 +750,7 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   .chart-wrapper, .chart-wrapper-pizza { height: 350px; }
   .chart-wrapper-distrito { height: 320px; }
 
-  /* mantém 1 linha, mas com scroll no mobile também */
-  .paineis-distrito-grid { overflow-x: auto; }
+  .paineis-distrito-grid { grid-template-columns: 1fr; }
 }
 
 @keyframes fadeInUp {
@@ -760,14 +758,5 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
   to { opacity: 1; transform: translateY(0); }
 }
 
-.metric-card, .filters-container, .chart-box, .chart-box-full { animation: fadeInUp 0.6s ease-out; }
+.metric-card, .filters-container, .chart-box, .chart-box-full, .paineis-distrito-section { animation: fadeInUp 0.6s ease-out; }
 html { scroll-behavior: smooth; }
-
-@media (max-width: 1200px) {
-  .paineis-distrito-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 768px) {
-  .paineis-distrito-grid { grid-template-columns: 1fr; }
-}
-
