@@ -137,14 +137,14 @@ body {
 /* ===================================
 PAINÉIS DISTRITO
 =================================== */
-.paineis-distrito-section {
-  background: var(--branco);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: var(--sombra-md);
-  margin-bottom: 2rem;
-  animation: fadeInUp 0.6s ease-out;
+.paineis-distrito-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+  overflow: visible;         /* remove scroll */
+  padding-bottom: 0;         /* não precisa espaço p/ scrollbar */
 }
+
 
 /* ALTERADO: todos em 1 linha só (com rolagem horizontal quando precisar) */
 .paineis-distrito-grid {
@@ -175,7 +175,8 @@ PAINÉIS DISTRITO
   position: relative;
   overflow: hidden;
   height: 60px;
-  min-width: 190px; /* garante cards menores e consistentes na linha */
+  min-width: 0;
+
 }
 
 .painel-card::before {
@@ -761,3 +762,12 @@ CARDS DE MÉTRICAS - AJUSTADO PARA LARGURA CHEIA
 
 .metric-card, .filters-container, .chart-box, .chart-box-full { animation: fadeInUp 0.6s ease-out; }
 html { scroll-behavior: smooth; }
+
+@media (max-width: 1200px) {
+  .paineis-distrito-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 768px) {
+  .paineis-distrito-grid { grid-template-columns: 1fr; }
+}
+
