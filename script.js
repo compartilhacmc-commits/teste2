@@ -691,16 +691,48 @@ function updateCharts() {
   createResolutividadeDistritoChart();
 
   // -------------------------------
-  // Status
+  // 3) GRÁFICO DE STATUS - CORRIGIDO COM REGRAS ESPECÍFICAS
   // -------------------------------
-  const statusCount = {};
+  const statusCount = {
+    'RESOLVIDOS': 0,
+    'PENDENTES': 0,
+    'CANCELADO': 0,
+    'AGENDADO': 0,
+    'CANCELADO/VENCIMENTO DO PRAZO': 0
+  };
+
   filteredData.forEach(item => {
     if (!hasUsuarioPreenchido(item)) return;
-    const status = getColumnValue(item, ['Status', 'STATUS', 'status'], 'Não informado');
-    statusCount[status] = (statusCount[status] || 0) + 1;
+
+    const status = getColumnValue(item, ['Status', 'STATUS', 'status'], '').trim().toUpperCase();
+
+    // RESOLVIDOS: aba RESOLVIDOS + usuário preenchido
+    if (item['_tipo'] === 'RESOLVIDO') {
+      statusCount['RESOLVIDOS']++;
+    }
+
+    // PENDENTES: aba PENDÊNCIAS + usuário preenchido
+    if (item['_tipo'] === 'PENDENTE') {
+      statusCount['PENDENTES']++;
+    }
+
+    // CANCELADO: aba RESOLVIDOS + Status = "CANCELADO"
+    if (item['_tipo'] === 'RESOLVIDO' && status === 'CANCELADO') {
+      statusCount['CANCELADO']++;
+    }
+
+    // AGENDADO: aba RESOLVIDOS + Status = "AGENDADO"
+    if (item['_tipo'] === 'RESOLVIDO' && (status === 'AGENDADO' || status === 'AGENDADA')) {
+      statusCount['AGENDADO']++;
+    }
+
+    // CANCELADO/VENCIMENTO DO PRAZO: aba RESOLVIDOS + Status = "CANCELADO/VENCIMENTO DO PRAZO"
+    if (item['_tipo'] === 'RESOLVIDO' && status === 'CANCELADO/VENCIMENTO DO PRAZO') {
+      statusCount['CANCELADO/VENCIMENTO DO PRAZO']++;
+    }
   });
 
-  const statusLabels = Object.keys(statusCount).sort((a, b) => statusCount[b] - statusCount[a]);
+  const statusLabels = Object.keys(statusCount);
   const statusValues = statusLabels.map(label => statusCount[label]);
   createStatusChart('chartStatus', statusLabels, statusValues);
 
@@ -1036,6 +1068,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 
 // ===================================
 // GRÁFICO: Registros de Pendências Resolvidas por Distrito
+// ✅ ALTERAÇÃO 1: COR VERDE ESCURO
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1050,7 +1083,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#6d28d9', // LILÁS ESCURO
+        backgroundColor: '#166534', // ✅ VERDE ESCURO
         borderWidth: 0,
         borderRadius: 8,
         barPercentage: 0.65,
@@ -1068,7 +1101,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         x: {
           ticks: {
             font: { size: 13, weight: 'bold' },
-            color: '#6d28d9',
+            color: '#166534', // ✅ VERDE ESCURO
             maxRotation: 45,
             minRotation: 0
           },
@@ -1510,14 +1543,11 @@ function createPieChart(canvasId, labels, data) {
   if (chartPizzaStatus) chartPizzaStatus.destroy();
 
   const colorMap = {
-    'PENDENTE': '#3b82f6',
-    'Pendente': '#3b82f6',
+    'RESOLVIDOS': '#10b981',
+    'PENDENTES': '#3b82f6',
     'CANCELADO': '#ef4444',
-    'Cancelado': '#ef4444',
-    'RESOLVIDO': '#10b981',
-    'Resolvido': '#10b981',
     'AGENDADO': '#f59e0b',
-    'Agendado': '#f59e0b'
+    'CANCELADO/VENCIMENTO DO PRAZO': '#9333ea'
   };
 
   const colors = labels.map(label => colorMap[label] || '#8b5cf6');
