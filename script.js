@@ -862,7 +862,7 @@ function updateCharts() {
 }
 
 // ===================================
-// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito
+// ✅ GRÁFICO: Pendências Não Resolvidas por Distrito (ESTILO VERTICAL)
 // ===================================
 function createDistritoPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -876,15 +876,15 @@ function createDistritoPendenteChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#991b1b',
+        backgroundColor: '#dc2626', // Vermelho similar à imagem
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.85,
-        categoryPercentage: 0.9
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -893,16 +893,16 @@ function createDistritoPendenteChart(canvasId, labels, data) {
       },
       scales: {
         x: {
-          beginAtZero: true,
-          ticks: { display: false },
+          ticks: {
+            font: { size: 12, weight: 'bold' },
+            color: '#991b1b'
+          },
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: {
-            font: { size: 13, weight: 'bold' },
-            color: '#991b1b'
-          },
+          beginAtZero: true,
+          ticks: { display: false },
           grid: { display: false },
           border: { display: false }
         }
@@ -917,16 +917,19 @@ function createDistritoPendenteChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
+          if (value <= 0) return;
+          
           const text = `${value}`;
-          const xPos = bar.x - 8;
-          ctx.fillText(text, xPos, bar.y);
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          
+          ctx.fillText(text, bar.x, yPos);
         });
 
         ctx.restore();
@@ -934,6 +937,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
     }]
   });
 }
+
 
 // ===================================
 // ✅ GRÁFICO: Pendências Resolvidas por Distrito
