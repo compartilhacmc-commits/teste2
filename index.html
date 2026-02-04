@@ -243,21 +243,24 @@
       </div>
     </div>
 
-    <div class="chart-box chart-box-full">
-      <h3 class="chart-title">Pendências Resolvidas por Distrito</h3>
-      <div class="chart-wrapper-distrito">
-        <canvas id="chartDistritos"></canvas>
+    <!-- ✅ ALTERAÇÃO: GRÁFICOS LADO A LADO -->
+    <div class="charts-container">
+      <div class="chart-box">
+        <h3 class="chart-title">Pendências Resolvidas por Distrito</h3>
+        <div class="chart-wrapper-distrito">
+          <canvas id="chartDistritos"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-box">
+        <h3 class="chart-title">Registros de Pendências por Status</h3>
+        <div class="chart-wrapper-distrito">
+          <canvas id="chartStatus"></canvas>
+        </div>
       </div>
     </div>
 
-    <div class="chart-box chart-box-full">
-      <h3 class="chart-title">Registros de Pendências por Status</h3>
-      <div class="chart-wrapper-distrito">
-        <canvas id="chartStatus"></canvas>
-      </div>
-    </div>
-
-    <!-- ✅ NOVOS GRÁFICOS DE ESPECIALIDADE (ACIMA DOS GRÁFICOS DE PRESTADOR) -->
+    <!-- ✅ GRÁFICOS DE ESPECIALIDADE (TOP 10) -->
     <div class="charts-container">
       <div class="chart-box">
         <h3 class="chart-title">Registros Geral de Pendências por Especialidade</h3>
@@ -324,7 +327,7 @@
       </div>
     </div>
 
-    <!-- ✅ EVOLUÇÃO TEMPORAL MOVIDO PARA ABAIXO DOS GRÁFICOS DE RESOLUTIVIDADE -->
+    <!-- ✅ EVOLUÇÃO TEMPORAL -->
     <div class="chart-box chart-box-full">
       <h3 class="chart-title">Evolução Temporal de Pendências</h3>
       <div class="chart-wrapper-distrito">
