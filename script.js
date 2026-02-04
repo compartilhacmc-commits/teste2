@@ -1046,7 +1046,7 @@ function createStatusChart(canvasId, labels, data) {
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
