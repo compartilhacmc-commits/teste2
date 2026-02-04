@@ -919,13 +919,13 @@ function createDistritoPendenteChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -993,13 +993,13 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -1010,7 +1010,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Status
+// ✅ GRÁFICO: Status (COM BARRAS MAIS COMPRIDAS PARA AGENDADO E CANCELADO/VENCIMENTO)
 // ===================================
 function createStatusChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1027,13 +1027,22 @@ function createStatusChart(canvasId, labels, data) {
 
   const colors = labels.map(label => colorMap[label] || '#8b5cf6');
 
+  // ✅ AUMENTAR VALORES DE AGENDADO E CANCELADO/VENCIMENTO PARA BARRAS MAIS COMPRIDAS
+  const adjustedData = data.map((value, index) => {
+    const label = labels[index];
+    if (label === 'AGENDADO' || label === 'CANCELADO/VENCIMENTO DO PRAZO') {
+      return value > 0 ? Math.max(value, 50) : value; // Garante mínimo visual de 50
+    }
+    return value;
+  });
+
   chartStatus = new Chart(ctx, {
     type: 'bar',
     data: {
       labels,
       datasets: [{
         label: '',
-        data,
+        data: adjustedData,
         backgroundColor: colors,
         borderWidth: 0,
         borderRadius: 6,
@@ -1047,7 +1056,16 @@ function createStatusChart(canvasId, labels, data) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: { 
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              // Mostra o valor real no tooltip
+              const realValue = data[context.dataIndex];
+              return `${context.label}: ${realValue}`;
+            }
+          }
+        }
       },
       scales: {
         x: {
@@ -1077,13 +1095,13 @@ function createStatusChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
-          const value = dataset.data[i];
+          const value = data[i]; // Mostra valor real
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -1149,7 +1167,7 @@ function createEvolucaoTemporalChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Pendências por Mês
+// ✅ GRÁFICO: Total de Pendências por Mês (AZUL ESCURO, RÓTULOS BRANCOS NO MEIO)
 // ===================================
 function createPendenciasPorMesChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1161,9 +1179,9 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
     data: {
       labels,
       datasets: [{
-        label: 'Total de Pendências',
+        label: '',
         data,
-        backgroundColor: '#8b5cf6',
+        backgroundColor: '#1e3a8a', // ✅ AZUL ESCURO
         borderWidth: 0,
         borderRadius: 6
       }]
@@ -1172,21 +1190,45 @@ function createPendenciasPorMesChart(canvasId, labels, data) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { font: { size: 14, weight: 'bold' }, color: '#8b5cf6' } },
-        tooltip: {
-          enabled: true,
-          backgroundColor: 'rgba(139, 92, 246, 0.9)',
-          titleFont: { size: 14, weight: 'bold' },
-          bodyFont: { size: 13 },
-          padding: 12,
-          cornerRadius: 8
-        }
+        legend: { display: false },
+        tooltip: { enabled: false }
       },
       scales: {
-        x: { ticks: { font: { size: 11 }, color: '#4a5568' }, grid: { display: false } },
-        y: { beginAtZero: true, ticks: { font: { size: 12 }, color: '#4a5568' }, grid: { color: 'rgba(0,0,0,0.06)' } }
+        x: { 
+          ticks: { font: { size: 11 }, color: '#4a5568' }, 
+          grid: { display: false } 
+        },
+        y: { 
+          beginAtZero: true, 
+          ticks: { display: false },
+          grid: { display: false } 
+        }
       }
-    }
+    },
+    plugins: [{
+      id: 'pendenciasMesInsideLabels',
+      afterDatasetsDraw(chart) {
+        const { ctx } = chart;
+        const meta = chart.getDatasetMeta(0);
+        const dataset = chart.data.datasets[0];
+        if (!meta || !meta.data) return;
+
+        ctx.save();
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        meta.data.forEach((bar, i) => {
+          const value = dataset.data[i];
+          const text = `${value}`;
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          ctx.fillText(text, bar.x, yPos);
+        });
+
+        ctx.restore();
+      }
+    }]
   });
 }
 
@@ -1248,13 +1290,13 @@ function createEspecialidadeChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -1322,13 +1364,13 @@ function createEspecialidadePendenteChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -1339,12 +1381,21 @@ function createEspecialidadePendenteChart(canvasId, labels, data) {
 }
 
 // ===================================
-// GRÁFICO: Registros Geral de Pendências por Prestador
+// ✅ GRÁFICO: Registros Geral de Pendências por Prestador (COM BARRAS MAIS COMPRIDAS)
 // ===================================
 function createPrestadorChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
   if (chartPrestadores) chartPrestadores.destroy();
+
+  // ✅ AUMENTAR BARRAS DE CCE RESSACA E NELSON HUNGRIA
+  const adjustedData = data.map((value, index) => {
+    const label = labels[index];
+    if (label === 'CCE RESSACA' || label === 'NELSON HUNGRIA') {
+      return value > 0 ? Math.max(value, 50) : value;
+    }
+    return value;
+  });
 
   chartPrestadores = new Chart(ctx, {
     type: 'bar',
@@ -1352,7 +1403,7 @@ function createPrestadorChart(canvasId, labels, data) {
       labels,
       datasets: [{
         label: '',
-        data,
+        data: adjustedData,
         backgroundColor: '#8b5cf6',
         borderWidth: 0,
         borderRadius: 6,
@@ -1366,7 +1417,15 @@ function createPrestadorChart(canvasId, labels, data) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: { 
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              const realValue = data[context.dataIndex];
+              return `${context.label}: ${realValue}`;
+            }
+          }
+        }
       },
       scales: {
         x: {
@@ -1396,13 +1455,13 @@ function createPrestadorChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
-          const value = dataset.data[i];
+          const value = data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
@@ -1413,12 +1472,21 @@ function createPrestadorChart(canvasId, labels, data) {
 }
 
 // ===================================
-// GRÁFICO: Pendências Não Resolvidas por Prestador
+// ✅ GRÁFICO: Pendências Não Resolvidas por Prestador (COM BARRAS MAIS COMPRIDAS)
 // ===================================
 function createPrestadorPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
   if (chartPrestadoresPendentes) chartPrestadoresPendentes.destroy();
+
+  // ✅ AUMENTAR BARRAS DE CCE RESSACA E CAE IRIA DINIZ
+  const adjustedData = data.map((value, index) => {
+    const label = labels[index];
+    if (label === 'CCE RESSACA' || label === 'CAE IRIA DINIZ') {
+      return value > 0 ? Math.max(value, 50) : value;
+    }
+    return value;
+  });
 
   chartPrestadoresPendentes = new Chart(ctx, {
     type: 'bar',
@@ -1426,7 +1494,7 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       labels,
       datasets: [{
         label: '',
-        data,
+        data: adjustedData,
         backgroundColor: '#dc2626',
         borderWidth: 0,
         borderRadius: 6,
@@ -1440,7 +1508,15 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: false }
+        tooltip: { 
+          enabled: true,
+          callbacks: {
+            label: function(context) {
+              const realValue = data[context.dataIndex];
+              return `${context.label}: ${realValue}`;
+            }
+          }
+        }
       },
       scales: {
         x: {
@@ -1470,13 +1546,13 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
         ctx.save();
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
-          const value = dataset.data[i];
+          const value = data[i];
           const text = `${value}`;
-          const xPos = bar.x - 8;
+          const xPos = bar.x / 2;
           ctx.fillText(text, xPos, bar.y);
         });
 
