@@ -940,7 +940,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 
 
 // ===================================
-// ✅ GRÁFICO: Pendências Resolvidas por Distrito
+// GRÁFICO: Pendências Resolvidas por Distrito
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -954,15 +954,15 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#10b981',
+        backgroundColor: '#10b981', // Verde
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.85,
-        categoryPercentage: 0.9
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -971,16 +971,16 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       },
       scales: {
         x: {
-          beginAtZero: true,
-          ticks: { display: false },
+          ticks: {
+            font: { size: 12, weight: 'bold' },
+            color: '#10b981'
+          },
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: {
-            font: { size: 13, weight: 'bold' },
-            color: '#10b981'
-          },
+          beginAtZero: true,
+          ticks: { display: false },
           grid: { display: false },
           border: { display: false }
         }
@@ -995,16 +995,19 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
+          if (value <= 0) return;
+          
           const text = `${value}`;
-          const xPos = bar.x - 8;
-          ctx.fillText(text, xPos, bar.y);
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          
+          ctx.fillText(text, bar.x, yPos);
         });
 
         ctx.restore();
@@ -1014,22 +1017,12 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
 }
 
 // ===================================
-// ✅ GRÁFICO: Status
+// GRÁFICO: Registros de Pendências por Status
 // ===================================
 function createStatusChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
   if (!ctx) return;
   if (chartStatus) chartStatus.destroy();
-
-  const colorMap = {
-    'RESOLVIDOS': '#10b981',
-    'PENDENTES': '#3b82f6',
-    'CANCELADO': '#ef4444',
-    'AGENDADO': '#f59e0b',
-    'CANCELADO/VENCIMENTO DO PRAZO': '#9333ea'
-  };
-
-  const colors = labels.map(label => colorMap[label] || '#8b5cf6');
 
   chartStatus = new Chart(ctx, {
     type: 'bar',
@@ -1038,15 +1031,15 @@ function createStatusChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: colors,
+        backgroundColor: '#f97316', // ✅ LARANJA
         borderWidth: 0,
         borderRadius: 6,
-        barPercentage: 0.85,
-        categoryPercentage: 0.9
+        barPercentage: 0.7,
+        categoryPercentage: 0.8
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -1055,16 +1048,16 @@ function createStatusChart(canvasId, labels, data) {
       },
       scales: {
         x: {
-          beginAtZero: true,
-          ticks: { display: false },
+          ticks: {
+            font: { size: 12, weight: 'bold' },
+            color: '#f97316'
+          },
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: {
-            font: { size: 13, weight: 'bold' },
-            color: '#1e3a8a'
-          },
+          beginAtZero: true,
+          ticks: { display: false },
           grid: { display: false },
           border: { display: false }
         }
@@ -1079,16 +1072,19 @@ function createStatusChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
+        ctx.font = 'bold 18px Arial';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
+          if (value <= 0) return;
+          
           const text = `${value}`;
-          const xPos = bar.x - 8;
-          ctx.fillText(text, xPos, bar.y);
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          
+          ctx.fillText(text, bar.x, yPos);
         });
 
         ctx.restore();
@@ -1096,7 +1092,6 @@ function createStatusChart(canvasId, labels, data) {
     }]
   });
 }
-
 // ===================================
 // ✅ GRÁFICO: Evolução Temporal
 // ===================================
