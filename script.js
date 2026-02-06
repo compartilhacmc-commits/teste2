@@ -940,7 +940,7 @@ function createDistritoPendenteChart(canvasId, labels, data) {
 
 
 // ===================================
-// GRÁFICO: Pendências Resolvidas por Distrito
+// ✅ GRÁFICO: Pendências Resolvidas por Distrito (VERDE MAIS ESCURO)
 // ===================================
 function createDistritoResolvidasChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -954,7 +954,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#10b981', // Verde
+        backgroundColor: '#059669', // ✅ VERDE MAIS ESCURO
         borderWidth: 0,
         borderRadius: 6,
         barPercentage: 0.7,
@@ -962,7 +962,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
       }]
     },
     options: {
-      indexAxis: 'x', // ✅ BARRAS VERTICAIS
+      indexAxis: 'x',
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -973,7 +973,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         x: {
           ticks: {
             font: { size: 12, weight: 'bold' },
-            color: '#10b981'
+            color: '#059669' // ✅ VERDE MAIS ESCURO
           },
           grid: { display: false },
           border: { display: false }
@@ -995,7 +995,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
+        ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 18px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -1005,7 +1005,7 @@ function createDistritoResolvidasChart(canvasId, labels, data) {
           if (value <= 0) return;
           
           const text = `${value}`;
-          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          const yPos = bar.y + (bar.height / 2);
           
           ctx.fillText(text, bar.x, yPos);
         });
@@ -1362,7 +1362,7 @@ function createEspecialidadePendenteChart(canvasId, labels, data) {
 }
 
 // ===================================
-// GRÁFICO: Registros Geral de Pendências por Prestador
+// ✅ GRÁFICO: Registros Geral de Pendências por Prestador (ESTILO VERTICAL COM NÚMEROS)
 // ===================================
 function createPrestadorChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1376,7 +1376,7 @@ function createPrestadorChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#8b5cf6',
+        backgroundColor: '#8b5cf6', // Roxo
         borderWidth: 0,
         borderRadius: 6,
         barPercentage: 0.7,
@@ -1384,7 +1384,7 @@ function createPrestadorChart(canvasId, labels, data) {
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -1393,23 +1393,25 @@ function createPrestadorChart(canvasId, labels, data) {
       },
       scales: {
         x: {
-          beginAtZero: true,
-          ticks: { display: false },
+          ticks: {
+            font: { size: 11, weight: 'bold' },
+            color: '#8b5cf6',
+            maxRotation: 45,
+            minRotation: 45
+          },
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: {
-            font: { size: 13, weight: 'bold' },
-            color: '#8b5cf6'
-          },
+          beginAtZero: true,
+          ticks: { display: false },
           grid: { display: false },
           border: { display: false }
         }
       }
     },
     plugins: [{
-      id: 'prestadorInsideLabels',
+      id: 'prestadorVerticalInsideLabels',
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
@@ -1417,16 +1419,19 @@ function createPrestadorChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
-          const text = `${value}`;
-          const xPos = bar.x - 8;
-          ctx.fillText(text, xPos, bar.y);
+          if (value <= 0) return;
+          
+          const text = `${value}`; // ✅ VALOR TOTAL
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          
+          ctx.fillText(text, bar.x, yPos);
         });
 
         ctx.restore();
@@ -1436,7 +1441,7 @@ function createPrestadorChart(canvasId, labels, data) {
 }
 
 // ===================================
-// GRÁFICO: Pendências Não Resolvidas por Prestador
+// ✅ GRÁFICO: Pendências Não Resolvidas por Prestador (ESTILO VERTICAL COM NÚMEROS)
 // ===================================
 function createPrestadorPendenteChart(canvasId, labels, data) {
   const ctx = document.getElementById(canvasId);
@@ -1450,7 +1455,7 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       datasets: [{
         label: '',
         data,
-        backgroundColor: '#dc2626',
+        backgroundColor: '#dc2626', // Vermelho
         borderWidth: 0,
         borderRadius: 6,
         barPercentage: 0.7,
@@ -1458,7 +1463,7 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       }]
     },
     options: {
-      indexAxis: 'y',
+      indexAxis: 'x', // ✅ BARRAS VERTICAIS
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
@@ -1467,23 +1472,25 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
       },
       scales: {
         x: {
-          beginAtZero: true,
-          ticks: { display: false },
+          ticks: {
+            font: { size: 11, weight: 'bold' },
+            color: '#dc2626',
+            maxRotation: 45,
+            minRotation: 45
+          },
           grid: { display: false },
           border: { display: false }
         },
         y: {
-          ticks: {
-            font: { size: 13, weight: 'bold' },
-            color: '#dc2626'
-          },
+          beginAtZero: true,
+          ticks: { display: false },
           grid: { display: false },
           border: { display: false }
         }
       }
     },
     plugins: [{
-      id: 'prestadorPendenteInsideLabels',
+      id: 'prestadorPendenteVerticalInsideLabels',
       afterDatasetsDraw(chart) {
         const { ctx } = chart;
         const meta = chart.getDatasetMeta(0);
@@ -1491,16 +1498,19 @@ function createPrestadorPendenteChart(canvasId, labels, data) {
         if (!meta || !meta.data) return;
 
         ctx.save();
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = '#ffffff'; // ✅ RÓTULOS BRANCOS
         ctx.font = 'bold 16px Arial';
-        ctx.textAlign = 'right';
+        ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
 
         meta.data.forEach((bar, i) => {
           const value = dataset.data[i];
-          const text = `${value}`;
-          const xPos = bar.x - 8;
-          ctx.fillText(text, xPos, bar.y);
+          if (value <= 0) return;
+          
+          const text = `${value}`; // ✅ VALOR TOTAL
+          const yPos = bar.y + (bar.height / 2); // ✅ NO MEIO DA BARRA
+          
+          ctx.fillText(text, bar.x, yPos);
         });
 
         ctx.restore();
