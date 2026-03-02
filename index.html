@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
-    /* Estilos adicionais para novos gráficos */
+    /* Estilos adicionais para os novos gráficos - para adicionar ao seu style.css existente */
     .charts-row-3cols {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -45,6 +45,16 @@
       font-size: 0.75rem;
       font-weight: 600;
       color: var(--primary-dark);
+    }
+    
+    .percentage-badge.high {
+      background: rgba(231,76,60,0.15);
+      color: #c0392b;
+    }
+    
+    .dot-red {
+      background: #e74c3c;
+      box-shadow: 0 0 0 3px rgba(231,76,60,0.2);
     }
     
     @media (max-width: 1100px) {
@@ -351,7 +361,7 @@
       <div class="chart-card">
         <div class="chart-header">
           <div class="chart-title-group">
-            <div class="chart-dot dot-red" style="background: #e74c3c;"></div>
+            <div class="chart-dot dot-red"></div>
             <h4>% Cancelamentos por Distrito</h4>
           </div>
           <span class="chart-badge">Barras</span>
@@ -364,7 +374,7 @@
       <div class="chart-card">
         <div class="chart-header">
           <div class="chart-title-group">
-            <div class="chart-dot dot-red" style="background: #c0392b;"></div>
+            <div class="chart-dot dot-red"></div>
             <h4>% Cancelamentos por Especialidade</h4>
           </div>
           <span class="chart-badge">Barras</span>
@@ -436,3 +446,7 @@
     <p>Diretoria de Regulação do Acesso – Prefeitura Municipal de Contagem | Desenvolvido por Ana P. A. Silva – Matric. 201704</p>
     <p id="lastUpdate">Última atualização: –</p>
   </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
